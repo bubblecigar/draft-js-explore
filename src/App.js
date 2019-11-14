@@ -3,6 +3,7 @@ import { Card, Divider, Button, Link, Grid, Input, Snackbar } from '@material-ui
 import { makeStyles, styled } from '@material-ui/core/styles'
 import draft from 'draft-js'
 import store from 'store-js'
+import prefixMap from './prefixMap'
 
 const DraftEditor = draft.Editor
 
@@ -20,11 +21,6 @@ const PaddingCard = styled(Card)({
   border: '1px solid black',
   margin: '2px'
 })
-
-const prefixMap = {
-  ak: '47',
-  ha: 'lo'
-}
 
 const highlightMacther = (contentBlock, callback, contentState) => {
   contentBlock.findEntityRanges(
@@ -72,9 +68,14 @@ const MyDraftEditor = ({ prefixMap, initContentState }) => {
   const [lastCommand, setLastCommand] = React.useState('')
   const [selectionState, setSelectionState] = React.useState(draft.SelectionState.createEmpty())
   const [contentRaw, setContentRaw] = React.useState(draft.convertToRaw(editorState.getCurrentContent()))
-  const [readOnly, setReadOnly] = React.useState(true)
+  const [readOnly, setReadOnly] = React.useState(false)
   const [linkUrl, setLinkUrl] = React.useState('')
   const [hint, setHint] = React.useState(false)
+  React.useEffect(
+    () => {
+      getCurrentWordSelectionState()
+    }
+  )
   const readStyle = useStyles().read
   const editStyle = useStyles().edit
 
@@ -182,6 +183,26 @@ const MyDraftEditor = ({ prefixMap, initContentState }) => {
     const pre = contentBlock.getText().slice(0, selectionState.getEndOffset()).split(' ').reverse()[0]
     const post = contentBlock.getText().slice(selectionState.getEndOffset()).split(' ')[0]
     return pre + post
+  }
+
+  const getCurrentWordSelectionState = () => {
+    const contentState = editorState.getCurrentContent()
+    const anchorKey = selectionState.getAnchorKey()
+    if (!anchorKey) {
+      return ''
+    }
+    const contentBlock = contentState.getBlockForKey(anchorKey)
+    const contentText = contentBlock.getText()
+    const anchorOffset = selectionState.getAnchorOffset()
+    const focusOffset = selectionState.getFocusOffset()
+    const backwardOffset = contentText.slice(0, anchorOffset).split(' ').reverse()[0].length
+    const forwardOffset = contentText.slice(0, anchorOffset).split(' ')[0].length
+    const newSelecttionState = draft.SelectionState.createEmpty(anchorKey)
+    const lastWordSelectionState = newSelecttionState.merge({
+      anchorOffset: anchorOffset - backwardOffset,
+      focusOffset: focusOffset + forwardOffset
+    })
+    return lastWordSelectionState
   }
 
   const changeLinkUrl = e => {
