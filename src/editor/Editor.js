@@ -49,12 +49,12 @@ const plugins = [
   ...CtrlKeyPlugins
 ]
 
-const Hint = ({ editorRef, xOffset, yOffset }) => {
+const Hint = ({ editorRef, suggestionListRef, xOffset, yOffset }) => {
   const [open, setOpen] = React.useState(true)
   const [index, setIndex] = React.useState(0)
 
   // Array
-  const suggestionList = editorRef.current ? editorRef.current.getSuggestionList() : []
+  const suggestionList = suggestionListRef.current || []
 
   const editorEventHandler = e => {
     switch (e.detail.instruction) {
@@ -100,9 +100,10 @@ const Hint = ({ editorRef, xOffset, yOffset }) => {
     }
   )
 
-  const onMouseDown = option => (e, editor, next) => {
+  const onMouseDown = index => (e, editor, next) => {
     e.preventDefault()
-    editorRef.current && editorRef.current.replaceLastWord(option)
+    setIndex(index)
+    editorRef.current && editorRef.current.replaceLastWord(suggestionList[index])
   }
   return (
     suggestionList.length
@@ -121,7 +122,7 @@ const Hint = ({ editorRef, xOffset, yOffset }) => {
               (option, i) => (
                 <div
                   key={option}
-                  onMouseDown={onMouseDown(option)}
+                  onMouseDown={onMouseDown(i)}
                   className={index === i ? 'selected option' : 'option'}
                 >
                   {option}
@@ -135,20 +136,128 @@ const Hint = ({ editorRef, xOffset, yOffset }) => {
   )
 }
 
+// class HintC extends React.Component {
+//   constructor (props) {
+//     super(props)
+//     this.state = {
+//       open: true,
+//       index: 0
+//     }
+//     this.getSuggestionList = this.getSuggestionList.bind(this)
+//     this.editorEventHandler = this.editorEventHandler.bind(this)
+//     this.handleMouseDown = this.handleMouseDown.bind(this)
+//   }
+
+//   componentDidMount () {
+//     document.addEventListener('editorEmittedEvent', this.editorEventHandler)
+//   }
+
+//   componentWillUnmount () {
+//     document.removeEventListener('editorEmittedEvent', this.editorEventHandler)
+//   }
+
+//   getSuggestionList () {
+//     return this.props.editorRef.current ? this.props.editorRef.current.getSuggestionList() : []
+//   }
+
+//   editorEventHandler (e) {
+//     switch (e.detail.instruction) {
+//       case 'open': {
+//         this.setState({ open: true })
+//         break
+//       }
+//       case 'close': {
+//         this.setState({ open: false, index: 0 })
+//         break
+//       }
+//       case 'incre': {
+//         this.setState(
+//           prevState => ({ index: (prevState.index + 1) % this.getSuggestionList().length || 0 })
+//         )
+//         break
+//       }
+//       case 'decre': {
+//         this.setState(
+//           prevState => ({ index: (prevState.index - 1 + this.getSuggestionList().length) % this.getSuggestionList().length || 0 })
+//         )
+//         break
+//       }
+//       case 'enter': {
+//         const suggestion = this.getSuggestionList()[this.state.index]
+//         if (suggestion) {
+//           this.props.editorRef.current && this.props.editorRef.current.replaceLastWord(this.getSuggestionList()[this.state.index]).insertText(' ')
+//         } else {
+//           if (this.props.editorRef.current) {
+//             const currentType = this.props.editorRef.current.value.endBlock.type
+//             this.props.editorRef.current.insertBlock(currentType)
+//           }
+//         }
+//         break
+//       }
+//       default: {
+//         console.log('unhandled event:', e)
+//         break
+//       }
+//     }
+//   }
+
+//   handleMouseDown (option) {
+//     return (e, editor, next) => {
+//       e.preventDefault()
+//       this.props.editorRef.current && this.props.editorRef.current.replaceLastWord(option)
+//     }
+//   }
+
+//   render () {
+//     const suggestionList = this.props.editorRef.current ? this.props.editorRef.current.getSuggestionList() : []
+//     const { open, index } = this.state
+//     const { xOffset, yOffset } = this.props
+//     return (
+//       suggestionList.length
+//         ? (
+//           <div
+//             id='hint'
+//             style={{
+//               display: open ? 'flex' : 'none',
+//               position: 'fixed',
+//               left: xOffset,
+//               top: yOffset
+//             }}
+//           >
+//             {
+//               suggestionList.map(
+//                 (option, i) => (
+//                   <div
+//                     key={option}
+//                     className={index === i ? 'selected option' : 'option'}
+//                     onMouseDown={this.handleMouseDown(option)}
+//                   >
+//                     {option}
+//                   </div>
+//                 )
+//               )
+//             }
+//           </div>
+//         )
+//         : null
+//     )
+//   }
+// }
+
 const MyEditor = props => {
   const [value, setValue] = React.useState(initialValue)
   const [xOffset, setXOffset] = React.useState(0)
   const [yOffset, setYOffset] = React.useState(0)
-  const editorRef = React.useRef()
-  const suggestionListStateRef = React.useRef(false) // useRef to handle keydown closure problem
+  const editorRef = React.useRef(null)
+  // useRef to handle keydown closure problem
+  const suggestionListRef = React.useRef([])
 
-  const onChange = (change) => {
+  const onChange = change => {
     // save change to localStorage
     const jsonStr = JSON.stringify(change.value.toJSON())
     store.set('slateJs-demo', jsonStr)
     // update editor
     setValue(change.value)
-
     // update caret position
     try {
       const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
@@ -164,31 +273,34 @@ const MyEditor = props => {
   )
   const onKeyDown = (e, editor, next) => {
     if (e.keyCode >= 65 && e.keyCode <= 90) { // a-65 z-90
+      suggestionListRef.current = editor.getSuggestionListOf(e.key)
       document.dispatchEvent(editorEmittedEvent('open'))
-      suggestionListStateRef.current = true
-    } else if (e.keyCode === 38) { // up
-      if (suggestionListStateRef.current === true) {
-        document.dispatchEvent(editorEmittedEvent('decre'))
-        e.preventDefault()
+      return next()
+    } else if (suggestionListRef.current.length) {
+      switch (e.keyCode) {
+        case 38: { // up
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('decre'))
+          return
+        }
+        case 40: { // down
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('incre'))
+          return
+        }
+        case 13: { // enter
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('enter'))
+          suggestionListRef.current = []
+          return
+        }
+        default: {
+          document.dispatchEvent(editorEmittedEvent('close'))
+          suggestionListRef.current = []
+          return next()
+        }
       }
-    } else if (e.keyCode === 40) { // down
-      if (suggestionListStateRef.current === true) {
-        document.dispatchEvent(editorEmittedEvent('incre'))
-        e.preventDefault()
-      }
-    } else if (e.keyCode === 13) { // enter
-      if (suggestionListStateRef.current === true) {
-        document.dispatchEvent(editorEmittedEvent('enter'))
-        e.preventDefault()
-
-        // terminate change line behavior
-        return
-      }
-    } else {
-      document.dispatchEvent(editorEmittedEvent('close'))
-      suggestionListStateRef.current = false
     }
-    return next()
   }
 
   const onMouseDown = (e, editor, next) => {
@@ -211,6 +323,7 @@ const MyEditor = props => {
       />
       <Hint
         editorRef={editorRef}
+        suggestionListRef={suggestionListRef}
         xOffset={xOffset}
         yOffset={yOffset}
       />

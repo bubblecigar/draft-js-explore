@@ -16,6 +16,9 @@ const triggerReplacePlugin = {
     },
     getSuggestionList: editor => {
       return dictionary[editor.getLastWord()] || []
+    },
+    getSuggestionListOf: (editor, key) => {
+      return dictionary[editor.getLastWord() + key] || []
     }
   },
   commands: {
