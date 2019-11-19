@@ -1,0 +1,37 @@
+body {
+    padding: 10%
+}
+
+#editor{
+    border: 1px solid gray;
+}
+
+#hint{
+    display: flex;
+    flex-flow: column;
+    border: 1px dashed gray;
+    min-width: 100px;
+    transform: translate3d(-5px,5px,0)
+}
+
+.option{
+    background: white;
+    color: gray;
+    padding: 7px;
+    font-weight: bold;
+    border: 1px solid transparent;
+}
+.option:hover, .option.selected{
+    cursor: pointer;
+    border-top: 1px dashed white;
+    border-bottom: 1px dashed white;
+    background: gray;
+    color: white;
+}
+
+.selected.option:last-child, {
+    border-bottom: 1px solid transparent; 
+}
+.selected.option:first-child{
+    border-top: 1px solid transparent; 
+}
