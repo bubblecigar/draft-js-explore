@@ -71,6 +71,7 @@ const Portal = ({ editorRef, suggestionListRef }) => {
         } catch {
           console.log('uncaught caret position')
         }
+        setIndex(0)
         setOpen(true)
         break
       }
