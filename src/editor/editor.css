@@ -4,6 +4,7 @@ body {
 
 #editor{
     border: 1px solid gray;
+    padding: 10px;
 }
 
 #hint{
@@ -12,13 +13,14 @@ body {
     border: 1px dashed gray;
     min-width: 100px;
     transform: translate3d(-5px,5px,0);
-    overflow: scroll
+    overflow: scroll;
+    max-height: 150px;
 }
 
 .option{
     background: white;
     color: gray;
-    padding: 7px;
+    padding: 7px 14px 7px 7px;
     font-weight: bold;
     border: 1px solid transparent;
 }

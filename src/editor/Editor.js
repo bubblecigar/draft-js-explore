@@ -10,6 +10,7 @@ import store from 'store-js'
 /* -------KeyBinding ------- */
 import CmdKeyPlugins from './plugins/CmdKeyPlugins'
 import CtrlKeyPlugins from './plugins/CtrlKeyPlugins'
+import TabIndentPlugin from './plugins/TabIndentPlugin'
 // -------Decoration ------- */
 import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
 import styleQueryPlugin from './plugins/styleQueryPlugin'
@@ -33,7 +34,7 @@ const initialValue = Value.fromJSON(json || {
         nodes: [
           {
             object: 'text',
-            text: 'A line of text in a paragraph.'
+            text: ' A line of text in a paragraph.'
           }
         ]
       }
@@ -44,9 +45,10 @@ const initialValue = Value.fromJSON(json || {
 const plugins = [
   styleQueryPlugin,
   triggerReplacePlugin,
-  HighlightFocusedBlockPlugin,
+  HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
   ...CmdKeyPlugins,
-  ...CtrlKeyPlugins
+  ...CtrlKeyPlugins,
+  TabIndentPlugin
 ]
 
 const Portal = ({ editorRef, suggestionListRef }) => {
@@ -54,6 +56,7 @@ const Portal = ({ editorRef, suggestionListRef }) => {
   const [index, setIndex] = React.useState(0)
   const [xOffset, setXOffset] = React.useState(0)
   const [yOffset, setYOffset] = React.useState(0)
+  const hintRef = React.useRef()
 
   // Array
   const suggestionList = suggestionListRef.current || []
@@ -77,11 +80,21 @@ const Portal = ({ editorRef, suggestionListRef }) => {
         break
       }
       case 'incre': {
-        setIndex((index + 1) % suggestionList.length || 0)
+        const newIndex = (index + 1) % suggestionList.length || 0
+        setIndex(newIndex)
+        hintRef.current && hintRef.current.children[newIndex].scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest'
+        })
         break
       }
       case 'decre': {
-        setIndex((index - 1 + suggestionList.length) % suggestionList.length || 0)
+        const newIndex = (index - 1 + suggestionList.length) % suggestionList.length || 0
+        setIndex(newIndex)
+        hintRef.current && hintRef.current.children[newIndex].scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest'
+        })
         break
       }
       case 'enter': {
@@ -109,7 +122,12 @@ const Portal = ({ editorRef, suggestionListRef }) => {
   const onMouseDown = index => (e, editor, next) => {
     e.preventDefault()
     setIndex(index)
+    setOpen(false)
     editorRef.current && editorRef.current.replaceLastWord(suggestionList[index])
+  }
+  const onMouseOver = index => e => {
+    e.preventDefault()
+    setIndex(index)
   }
   return (
     suggestionList.length
@@ -122,12 +140,14 @@ const Portal = ({ editorRef, suggestionListRef }) => {
             left: xOffset,
             top: yOffset
           }}
+          ref={hintRef}
         >
           {
             suggestionList.map(
               (option, i) => (
                 <div
-                  key={option}
+                  key={i}
+                  onMouseOver={onMouseOver(i)}
                   onMouseDown={onMouseDown(i)}
                   className={index === i ? 'selected option' : 'option'}
                 >
@@ -151,7 +171,6 @@ const MyEditor = props => {
 
   const onChange = change => {
     // save change to localStorage
-    console.log('change.value.toJSON():', change.value.toJSON())
     const jsonStr = JSON.stringify(change.value.toJSON())
     store.set('slateJs-demo', jsonStr)
 
@@ -227,7 +246,8 @@ const MyEditor = props => {
 
 export default MyEditor
 
-// class HintC extends React.Component {
+// class component
+// class Portal extends React.Component {
 //   constructor (props) {
 //     super(props)
 //     this.state = {

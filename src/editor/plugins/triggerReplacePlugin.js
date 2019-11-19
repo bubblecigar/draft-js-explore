@@ -1,6 +1,21 @@
+import suggestionMap from './suggestionMap'
+
+const obj = {}
+const sa = {}
+Object.keys(suggestionMap).forEach(
+  key => {
+    obj[key] = [suggestionMap[key]]
+    if (!sa[key[0]]) {
+      sa[key[0]] = []
+    }
+    sa[key[0]].push(suggestionMap[key])
+  }
+)
 
 const dictionary = {
-  lt: ['left', 'light', 'lot']
+  lt: ['left', 'light', 'lot'],
+  ...obj,
+  ...sa
 }
 
 const triggerReplacePlugin = {
@@ -41,14 +56,6 @@ const triggerReplacePlugin = {
       editor.deleteBackward(lastWord.length).insertText(suggestions[0] ? suggestions[0] : lastWord)
     }
   }
-  // onKeyDown: (e, editor, next) => {
-  //   if (e.keyCode !== 9) {
-  //     return next()
-  //   }
-  //   // replace last word by suggestion
-  //   e.preventDefault()
-  //   editor.replaceLastWordBySuggestion()
-  // }
 }
 
 export default triggerReplacePlugin
