@@ -9,7 +9,7 @@ const triggerReplacePlugin = {
       if (editor.value.focusText) {
         const text = editor.value.focusText.text
         const focusOffset = editor.value.selection.focus.offset
-        const tail = text.slice(0, focusOffset).split(' ').reverse()[0]
+        const tail = text.slice(0, focusOffset).split('\n').join('').split(' ').reverse()[0]
         return tail
       }
       return ''
@@ -24,6 +24,9 @@ const triggerReplacePlugin = {
   commands: {
     replaceLastWord: (editor, newWord) => {
       const lastWord = editor.getLastWord()
+      if (!lastWord) {
+        return
+      }
       if (typeof newWord !== 'string') {
         return
       }
@@ -31,6 +34,9 @@ const triggerReplacePlugin = {
     },
     replaceLastWordBySuggestion: editor => {
       const lastWord = editor.getLastWord()
+      if (!lastWord) {
+        return
+      }
       const suggestions = editor.getSuggestionList()
       editor.deleteBackward(lastWord.length).insertText(suggestions[0] ? suggestions[0] : lastWord)
     }

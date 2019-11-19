@@ -49,9 +49,11 @@ const plugins = [
   ...CtrlKeyPlugins
 ]
 
-const Hint = ({ editorRef, suggestionListRef, xOffset, yOffset }) => {
+const Portal = ({ editorRef, suggestionListRef }) => {
   const [open, setOpen] = React.useState(true)
   const [index, setIndex] = React.useState(0)
+  const [xOffset, setXOffset] = React.useState(0)
+  const [yOffset, setYOffset] = React.useState(0)
 
   // Array
   const suggestionList = suggestionListRef.current || []
@@ -59,6 +61,13 @@ const Hint = ({ editorRef, suggestionListRef, xOffset, yOffset }) => {
   const editorEventHandler = e => {
     switch (e.detail.instruction) {
       case 'open': {
+        try {
+          const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
+          setXOffset(rect.left)
+          setYOffset(rect.bottom)
+        } catch {
+          console.log('uncaught caret position')
+        }
         setOpen(true)
         break
       }
@@ -79,12 +88,9 @@ const Hint = ({ editorRef, suggestionListRef, xOffset, yOffset }) => {
         const suggestion = suggestionList[index]
         if (suggestion) {
           editorRef.current && editorRef.current.replaceLastWord(suggestionList[index]).insertText(' ')
-        } else {
-          if (editorRef.current) {
-            const currentType = editorRef.current.value.endBlock.type
-            editorRef.current.insertBlock(currentType)
-          }
         }
+        setIndex(0)
+        setOpen(false)
         break
       }
       default: {
@@ -135,6 +141,91 @@ const Hint = ({ editorRef, suggestionListRef, xOffset, yOffset }) => {
       : null
   )
 }
+
+const MyEditor = props => {
+  const [value, setValue] = React.useState(initialValue)
+  const editorRef = React.useRef(null)
+
+  // useRef to handle keydown closure problem
+  const suggestionListRef = React.useRef([])
+
+  const onChange = change => {
+    // save change to localStorage
+    console.log('change.value.toJSON():', change.value.toJSON())
+    const jsonStr = JSON.stringify(change.value.toJSON())
+    store.set('slateJs-demo', jsonStr)
+
+    // update editor
+    setValue(change.value)
+  }
+
+  const resetSuggestionList = () => {
+    suggestionListRef.current = []
+  }
+  const editorEmittedEvent = instruction => (
+    new window.CustomEvent('editorEmittedEvent', { detail: { instruction } })
+  )
+  const onKeyDown = (e, editor, next) => {
+    if (e.keyCode >= 65 && e.keyCode <= 90) { // a-65 z-90
+      suggestionListRef.current = editor.getSuggestionListOf(e.key)
+      document.dispatchEvent(editorEmittedEvent('open'))
+      return next()
+    } else if (suggestionListRef.current.length) {
+      switch (e.keyCode) {
+        case 38: { // up
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('decre'))
+          return
+        }
+        case 40: { // down
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('incre'))
+          return
+        }
+        case 13: { // enter
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('enter'))
+          resetSuggestionList()
+          return
+        }
+        default: {
+          document.dispatchEvent(editorEmittedEvent('close'))
+          resetSuggestionList()
+          return next()
+        }
+      }
+    } else {
+      return next()
+    }
+  }
+
+  const onMouseDown = (e, editor, next) => {
+    document.dispatchEvent(editorEmittedEvent('close'))
+    return next()
+  }
+
+  return (
+    <div>
+      <Editor
+        id='editor'
+        ref={editorRef}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        onMouseDown={onMouseDown}
+        value={value}
+        plugins={plugins}
+        autoFocus
+        placeholder='Type something here...'
+      />
+      <Portal
+        editorRef={editorRef}
+        suggestionListRef={suggestionListRef}
+      />
+    </div>
+  )
+}
+
+export default MyEditor
 
 // class HintC extends React.Component {
 //   constructor (props) {
@@ -243,92 +334,3 @@ const Hint = ({ editorRef, suggestionListRef, xOffset, yOffset }) => {
 //     )
 //   }
 // }
-
-const MyEditor = props => {
-  const [value, setValue] = React.useState(initialValue)
-  const [xOffset, setXOffset] = React.useState(0)
-  const [yOffset, setYOffset] = React.useState(0)
-  const editorRef = React.useRef(null)
-  // useRef to handle keydown closure problem
-  const suggestionListRef = React.useRef([])
-
-  const onChange = change => {
-    // save change to localStorage
-    const jsonStr = JSON.stringify(change.value.toJSON())
-    store.set('slateJs-demo', jsonStr)
-    // update editor
-    setValue(change.value)
-    // update caret position
-    try {
-      const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
-      setXOffset(rect.left)
-      setYOffset(rect.bottom)
-    } catch {
-      console.log('hello')
-    }
-  }
-
-  const editorEmittedEvent = instruction => (
-    new window.CustomEvent('editorEmittedEvent', { detail: { instruction } })
-  )
-  const onKeyDown = (e, editor, next) => {
-    if (e.keyCode >= 65 && e.keyCode <= 90) { // a-65 z-90
-      suggestionListRef.current = editor.getSuggestionListOf(e.key)
-      document.dispatchEvent(editorEmittedEvent('open'))
-      return next()
-    } else if (suggestionListRef.current.length) {
-      switch (e.keyCode) {
-        case 38: { // up
-          e.preventDefault()
-          document.dispatchEvent(editorEmittedEvent('decre'))
-          return
-        }
-        case 40: { // down
-          e.preventDefault()
-          document.dispatchEvent(editorEmittedEvent('incre'))
-          return
-        }
-        case 13: { // enter
-          e.preventDefault()
-          document.dispatchEvent(editorEmittedEvent('enter'))
-          suggestionListRef.current = []
-          return
-        }
-        default: {
-          document.dispatchEvent(editorEmittedEvent('close'))
-          suggestionListRef.current = []
-          return next()
-        }
-      }
-    }
-  }
-
-  const onMouseDown = (e, editor, next) => {
-    document.dispatchEvent(editorEmittedEvent('close'))
-    return next()
-  }
-
-  return (
-    <div>
-      <Editor
-        id='editor'
-        ref={editorRef}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        onMouseDown={onMouseDown}
-        value={value}
-        plugins={plugins}
-        autoFocus
-        placeholder='Type something here...'
-      />
-      <Hint
-        editorRef={editorRef}
-        suggestionListRef={suggestionListRef}
-        xOffset={xOffset}
-        yOffset={yOffset}
-      />
-    </div>
-  )
-}
-
-export default MyEditor

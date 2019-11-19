@@ -11,7 +11,8 @@ body {
     flex-flow: column;
     border: 1px dashed gray;
     min-width: 100px;
-    transform: translate3d(-5px,5px,0)
+    transform: translate3d(-5px,5px,0);
+    overflow: scroll
 }
 
 .option{
@@ -21,8 +22,10 @@ body {
     font-weight: bold;
     border: 1px solid transparent;
 }
-.option:hover, .option.selected{
+.option:hover{
     cursor: pointer;
+}
+.option.selected{
     border-top: 1px dashed white;
     border-bottom: 1px dashed white;
     background: gray;
