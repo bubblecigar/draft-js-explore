@@ -13,7 +13,8 @@ const moduleStyle = {}
 
 const buttonStyle = ({ active }) => ({
   margin: '10px 5px',
-  backgroundColor: active ? 'gold' : 'transparent'
+  backgroundColor: active ? 'gray' : 'transparent',
+  color: active ? 'white' : 'black'
 })
 
 const makeButton = ({ mouseDownHandler, styleHandler }) => ({ editor, label }) => (
@@ -101,4 +102,4 @@ const ToolbarPlugin = {
   ...styleQueryPlugin
 }
 
-export { ToolbarPlugin }
+export default ToolbarPlugin

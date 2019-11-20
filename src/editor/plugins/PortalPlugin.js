@@ -46,6 +46,12 @@ const optionStyle = ({ select, firstChild, lastChild }) => {
   )
 }
 
+// sharing data between Portal and EventDispatcher
+const suggestionList = {
+  value: [],
+  clear: () => { suggestionList.value = [] }
+}
+
 const Portal = ({ editor }) => {
   // portal state, listen to editor
   const [open, setOpen] = React.useState(true)
@@ -56,12 +62,7 @@ const Portal = ({ editor }) => {
   const [yOffset, setYOffset] = React.useState(0)
   const portalRef = React.useRef(null)
 
-  // computed suggestion list
-  const [suggestionList, setSuggestionList] = React.useState([])
-
-  const lastWord = editor.getLastWord()
-  React.useEffect(() => {
-    setSuggestionList(editor.getSuggestionList())
+  const updatePortalPosition = () => {
     try {
       const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
       setXOffset(rect.left)
@@ -69,11 +70,12 @@ const Portal = ({ editor }) => {
     } catch {
       console.log('uncaught caret position')
     }
-  }, [editor, lastWord])
+  }
 
   const editorEventHandler = e => {
     switch (e.detail.instruction) {
       case 'open': {
+        updatePortalPosition()
         setIndex(0)
         setOpen(true)
         break
@@ -84,7 +86,7 @@ const Portal = ({ editor }) => {
         break
       }
       case 'incre': {
-        const newIndex = (index + 1) % suggestionList.length || 0
+        const newIndex = (index + 1) % suggestionList.value.length || 0
         setIndex(newIndex)
         portalRef.current && portalRef.current.children[newIndex].scrollIntoView({
           block: 'nearest',
@@ -93,7 +95,7 @@ const Portal = ({ editor }) => {
         break
       }
       case 'decre': {
-        const newIndex = (index - 1 + suggestionList.length) % suggestionList.length || 0
+        const newIndex = (index - 1 + suggestionList.value.length) % suggestionList.value.length || 0
         setIndex(newIndex)
         portalRef.current && portalRef.current.children[newIndex].scrollIntoView({
           block: 'nearest',
@@ -102,9 +104,9 @@ const Portal = ({ editor }) => {
         break
       }
       case 'enter': {
-        const suggestion = suggestionList[index]
+        const suggestion = suggestionList.value[index]
         if (suggestion) {
-          editor && editor.replaceLastWord(suggestionList[index]).insertText(' ')
+          editor.replaceLastWord(suggestionList.value[index]).insertText(' ')
         }
         setIndex(0)
         setOpen(false)
@@ -127,7 +129,7 @@ const Portal = ({ editor }) => {
     e.preventDefault()
     setIndex(index)
     setOpen(false)
-    editor.replaceLastWord(suggestionList[index])
+    editor.replaceLastWord(suggestionList.value[index])
   }
   const onMouseOver = index => e => {
     e.preventDefault()
@@ -135,7 +137,7 @@ const Portal = ({ editor }) => {
   }
 
   return (
-    suggestionList.length
+    suggestionList.value.length
       ? (
         <div
           ref={portalRef}
@@ -146,7 +148,7 @@ const Portal = ({ editor }) => {
           })}
         >
           {
-            suggestionList.map(
+            suggestionList.value.map(
               (option, i) => (
                 <div
                   key={i}
@@ -155,7 +157,7 @@ const Portal = ({ editor }) => {
                   style={optionStyle({
                     select: index === i,
                     firstChild: i === 0,
-                    lastChild: i === suggestionList.length - 1
+                    lastChild: i === suggestionList.value.length - 1
                   })}
                 >
                   {option}
@@ -169,8 +171,57 @@ const Portal = ({ editor }) => {
   )
 }
 
+const EventDispatcher = () => {
+  const editorEmittedEvent = instruction => (
+    new window.CustomEvent('editorEmittedEvent', { detail: { instruction } })
+  )
+
+  const onKeyDown = (e, editor, next) => {
+    if (e.keyCode >= 65 && e.keyCode <= 90 && !e.ctrlKey && !e.metaKey) {
+    // a-65 z-90
+      suggestionList.value = [...editor.getSuggestionListOf(e.key)]
+      document.dispatchEvent(editorEmittedEvent('open'))
+      return next()
+    } else if (suggestionList.value.length) {
+      switch (e.keyCode) {
+        case 38: { // up
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('decre'))
+          return
+        }
+        case 40: { // down
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('incre'))
+          return
+        }
+        case 13: { // enter
+          e.preventDefault()
+          document.dispatchEvent(editorEmittedEvent('enter'))
+          suggestionList.clear()
+          return
+        }
+        default: {
+          document.dispatchEvent(editorEmittedEvent('close'))
+          suggestionList.clear()
+          return next()
+        }
+      }
+    } else {
+      return next()
+    }
+  }
+
+  const onMouseDown = (e, editor, next) => {
+    document.dispatchEvent(editorEmittedEvent('close'))
+    return next()
+  }
+
+  return ({ onKeyDown, onMouseDown })
+}
+
 const PortalPlugin = {
   ...SuggestionPlugin,
+  ...EventDispatcher(),
   renderEditor: (props, editor, next) => (
     <>
       {next()}
