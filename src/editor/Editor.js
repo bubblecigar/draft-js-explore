@@ -1,7 +1,7 @@
 // core
 import React from 'react'
 import { Editor } from 'slate-react'
-import { Value } from 'slate'
+import { Value, Inline, Text } from 'slate'
 
 // save & load
 import store from 'store-js'
