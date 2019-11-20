@@ -3,12 +3,14 @@ import suggestionMap from './suggestionMap'
 const obj = {}
 const sa = {}
 Object.keys(suggestionMap).forEach(
-  key => {
-    obj[key] = [suggestionMap[key]]
+  _key => {
+    const key = _key.toLowerCase()
+
+    obj[key] = [suggestionMap[_key]]
     if (!sa[key[0]]) {
       sa[key[0]] = []
     }
-    sa[key[0]].push(suggestionMap[key])
+    sa[key[0]].push(suggestionMap[_key])
   }
 )
 
@@ -30,10 +32,10 @@ const triggerReplacePlugin = {
       return ''
     },
     getSuggestionList: editor => {
-      return dictionary[editor.getLastWord()] || []
+      return dictionary[editor.getLastWord().toLowerCase()] || []
     },
     getSuggestionListOf: (editor, key) => {
-      return dictionary[editor.getLastWord() + key] || []
+      return dictionary[editor.getLastWord().toLowerCase() + key.toLowerCase()] || []
     }
   },
   commands: {

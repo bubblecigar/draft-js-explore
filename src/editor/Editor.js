@@ -13,7 +13,6 @@ import CtrlKeyPlugins from './plugins/CtrlKeyPlugins'
 import TabIndentPlugin from './plugins/TabIndentPlugin'
 // ------ Decoration ------- */
 import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
-import styleQueryPlugin from './plugins/styleQueryPlugin'
 // ------ AutoReplace ------- */
 import triggerReplacePlugin from './plugins/triggerReplacePlugin'
 // ---------  GUI  --------- */
@@ -43,7 +42,6 @@ const initialValue = Value.fromJSON(json || {
 })
 
 const plugins = [
-  styleQueryPlugin,
   triggerReplacePlugin,
   HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
   ...CmdKeyPlugins,
@@ -249,112 +247,3 @@ const MyEditor = props => {
 }
 
 export default MyEditor
-
-// class component
-// class Portal extends React.Component {
-//   constructor (props) {
-//     super(props)
-//     this.state = {
-//       open: true,
-//       index: 0
-//     }
-//     this.getSuggestionList = this.getSuggestionList.bind(this)
-//     this.editorEventHandler = this.editorEventHandler.bind(this)
-//     this.handleMouseDown = this.handleMouseDown.bind(this)
-//   }
-
-//   componentDidMount () {
-//     document.addEventListener('editorEmittedEvent', this.editorEventHandler)
-//   }
-
-//   componentWillUnmount () {
-//     document.removeEventListener('editorEmittedEvent', this.editorEventHandler)
-//   }
-
-//   getSuggestionList () {
-//     return this.props.editorRef.current ? this.props.editorRef.current.getSuggestionList() : []
-//   }
-
-//   editorEventHandler (e) {
-//     switch (e.detail.instruction) {
-//       case 'open': {
-//         this.setState({ open: true })
-//         break
-//       }
-//       case 'close': {
-//         this.setState({ open: false, index: 0 })
-//         break
-//       }
-//       case 'incre': {
-//         this.setState(
-//           prevState => ({ index: (prevState.index + 1) % this.getSuggestionList().length || 0 })
-//         )
-//         break
-//       }
-//       case 'decre': {
-//         this.setState(
-//           prevState => ({ index: (prevState.index - 1 + this.getSuggestionList().length) % this.getSuggestionList().length || 0 })
-//         )
-//         break
-//       }
-//       case 'enter': {
-//         const suggestion = this.getSuggestionList()[this.state.index]
-//         if (suggestion) {
-//           this.props.editorRef.current && this.props.editorRef.current.replaceLastWord(this.getSuggestionList()[this.state.index]).insertText(' ')
-//         } else {
-//           if (this.props.editorRef.current) {
-//             const currentType = this.props.editorRef.current.value.endBlock.type
-//             this.props.editorRef.current.insertBlock(currentType)
-//           }
-//         }
-//         break
-//       }
-//       default: {
-//         console.log('unhandled event:', e)
-//         break
-//       }
-//     }
-//   }
-
-//   handleMouseDown (option) {
-//     return (e, editor, next) => {
-//       e.preventDefault()
-//       this.props.editorRef.current && this.props.editorRef.current.replaceLastWord(option)
-//     }
-//   }
-
-//   render () {
-//     const suggestionList = this.props.editorRef.current ? this.props.editorRef.current.getSuggestionList() : []
-//     const { open, index } = this.state
-//     const { xOffset, yOffset } = this.props
-//     return (
-//       suggestionList.length
-//         ? (
-//           <div
-//             id='hint'
-//             style={{
-//               display: open ? 'flex' : 'none',
-//               position: 'fixed',
-//               left: xOffset,
-//               top: yOffset
-//             }}
-//           >
-//             {
-//               suggestionList.map(
-//                 (option, i) => (
-//                   <div
-//                     key={option}
-//                     className={index === i ? 'selected option' : 'option'}
-//                     onMouseDown={this.handleMouseDown(option)}
-//                   >
-//                     {option}
-//                   </div>
-//                 )
-//               )
-//             }
-//           </div>
-//         )
-//         : null
-//     )
-//   }
-// }

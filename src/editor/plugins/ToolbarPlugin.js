@@ -1,50 +1,56 @@
 import React from 'react'
+import styleQueryPlugin from './styleQueryPlugin'
 
 const containerStyle = {
-  padding: '10%'
+  padding: '10%',
+  paddingBottom: '30px'
 }
 const toolbarStyle = {
   display: 'flex',
   justifyContent: 'space-between'
 }
-const moduleStyle = {
+const moduleStyle = {}
 
-}
-const buttonStyle = {
-  margin: '10px 5px'
-}
+const buttonStyle = ({ active }) => ({
+  margin: '10px 5px',
+  backgroundColor: active ? 'gold' : 'transparent'
+})
 
-const makeButton = ({ callback }) => ({ editor, label }) => {
-  return (
-    <button
-      style={buttonStyle}
-      onMouseDown={callback(editor)}
-    >
-      {label}
-    </button>
-  )
-}
+const makeButton = ({ mouseDownHandler, styleHandler }) => ({ editor, label }) => (
+  <button
+    style={styleHandler(editor)}
+    onMouseDown={mouseDownHandler(editor)}
+  >
+    {label}
+  </button>
+)
 const makeToggleMarkButton = ({ type }) => makeButton({
-  callback: editor => e => {
+  mouseDownHandler: editor => e => {
     e.preventDefault()
     editor.toggleMark({ type })
-  }
+  },
+  styleHandler: editor => editor.isMarkTypeActive(type)
+    ? buttonStyle({ active: true })
+    : buttonStyle({ active: false })
 })
 const ToggleMarkButton = ({ type, label, editor }) => (
   makeToggleMarkButton({ type })({ editor, label })
 )
 
 const makeSetBlockButton = ({ type }) => makeButton({
-  callback: editor => e => {
+  mouseDownHandler: editor => e => {
     e.preventDefault()
     editor.setBlocks({ type })
-  }
+  },
+  styleHandler: editor => editor.isBlockTypeActive(type)
+    ? buttonStyle({ active: true })
+    : buttonStyle({ active: false })
 })
 const SetBlockButton = ({ type, label, editor }) => (
   makeSetBlockButton({ type })({ editor, label })
 )
 
-const TopToolbar = ({ editor }) => (
+const Toolbar = ({ editor }) => (
   <div style={toolbarStyle}>
     <div style={moduleStyle}>
       <ToggleMarkButton
@@ -87,11 +93,12 @@ const ToolbarPlugin = {
   renderEditor: (props, editor, next) => {
     return (
       <div style={containerStyle}>
-        <TopToolbar editor={editor} />
+        <Toolbar editor={editor} />
         {next()}
       </div>
     )
-  }
+  },
+  ...styleQueryPlugin
 }
 
 export { ToolbarPlugin }
