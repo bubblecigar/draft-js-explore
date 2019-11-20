@@ -56,16 +56,12 @@ const KeyMapTable = ({ table }) => {
     setNextId(nextId + 1)
   }
 
-  // combine keys[] : vals[] pair back into table
-  const getTable = () => {
-    const table = {}
-    for (let i = 0; i < keys.length; i++) {
-      if (keys[i] && vals[i]) {
-        table[keys[i]] = vals[i]
-      }
-    }
-    return table
-  }
+  // bind keys[] : vals[] pair to generate suggestion table
+  const bind = (keys, vals) => keys.reduce(
+    (acc, key, i) => (
+      key ? { ...acc, [key]: vals[i] } : { ...acc }
+    ), {}
+  )
 
   return (
     <div style={tableStyle}>
