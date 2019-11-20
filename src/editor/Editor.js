@@ -3,21 +3,25 @@ import React from 'react'
 import { Editor } from 'slate-react'
 import { Value } from 'slate'
 
-// save & load
-import store from 'store-js'
-
 // plugins
 /* ------ KeyBinding ------- */
 import CmdKeyPlugins from './plugins/CmdKeyPlugins'
 import CtrlKeyPlugins from './plugins/CtrlKeyPlugins'
 import TabIndentPlugin from './plugins/TabIndentPlugin'
-// ------ Decoration ------- */
+
+/* ------ Decoration ------- */
 import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
-// ------ AutoReplace ------- */
-import PortalPlugin from './plugins/PortalPlugin'
-// ---------  GUI  --------- */
+
+/* ------ Suggestion ------- */
+import SuggestionPortal from './plugins/SuggestionPortal'
+import suggestionMap from './plugins/suggestionMap'
+
+/* ---------  GUI  --------- */
 import ToolbarPlugin from './plugins/ToolbarPlugin'
 import TextCountPlugin from './plugins/TextCountPlugin'
+
+// save & load
+import store from 'store-js'
 
 const storedJsonStr = store.get('slateJs-demo')
 const json = JSON.parse(storedJsonStr)
@@ -45,7 +49,7 @@ const plugins = [
   TabIndentPlugin,
   ToolbarPlugin,
   TextCountPlugin,
-  PortalPlugin
+  SuggestionPortal(suggestionMap)
 ]
 
 const MyEditor = props => {

@@ -1,5 +1,5 @@
 import React from 'react'
-import SuggestionPlugin from './SuggestionPlugin'
+import LastWordPlugin from './LastWordPlugin'
 
 const portalStyle = ({ open, xOffset, yOffset }) => ({
   display: open ? 'flex' : 'none',
@@ -219,8 +219,8 @@ const EventDispatcher = () => {
   return ({ onKeyDown, onMouseDown })
 }
 
-const PortalPlugin = {
-  ...SuggestionPlugin,
+const SuggestionPortal = suggestionMap => ({
+  ...LastWordPlugin(suggestionMap),
   ...EventDispatcher(),
   renderEditor: (props, editor, next) => (
     <>
@@ -228,6 +228,6 @@ const PortalPlugin = {
       <Portal editor={editor} />
     </>
   )
-}
+})
 
-export default PortalPlugin
+export default SuggestionPortal
