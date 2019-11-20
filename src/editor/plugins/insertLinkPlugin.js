@@ -1,3 +1,7 @@
+import React from 'react'
+import { Editor } from 'slate-react'
+import { Value, Inline, Text } from 'slate'
+
 const insertLinkPlugin = {
   schema: {
     inlines: {

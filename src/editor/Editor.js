@@ -1,24 +1,24 @@
 // core
 import React from 'react'
 import { Editor } from 'slate-react'
-import { Value, Inline, Text } from 'slate'
+import { Value } from 'slate'
 
 // save & load
 import store from 'store-js'
 
 // plugins
-/* -------KeyBinding ------- */
+/* ------ KeyBinding ------- */
 import CmdKeyPlugins from './plugins/CmdKeyPlugins'
 import CtrlKeyPlugins from './plugins/CtrlKeyPlugins'
 import TabIndentPlugin from './plugins/TabIndentPlugin'
-// -------Decoration ------- */
+// ------ Decoration ------- */
 import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
 import styleQueryPlugin from './plugins/styleQueryPlugin'
-// -------AutoReplace ------- */
+// ------ AutoReplace ------- */
 import triggerReplacePlugin from './plugins/triggerReplacePlugin'
-
-// GUI
-// import Toolbar from './Toolbar'
+// ---------  GUI  --------- */
+import { ToolbarPlugin } from './plugins/ToolbarPlugin'
+import TextCountPlugin from './plugins/TextCountPlugin'
 
 // CSS
 import './editor.css'
@@ -48,7 +48,9 @@ const plugins = [
   HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
   ...CmdKeyPlugins,
   ...CtrlKeyPlugins,
-  TabIndentPlugin
+  TabIndentPlugin,
+  ToolbarPlugin,
+  TextCountPlugin
 ]
 
 const Portal = ({ editorRef, suggestionListRef }) => {
@@ -186,7 +188,8 @@ const MyEditor = props => {
     new window.CustomEvent('editorEmittedEvent', { detail: { instruction } })
   )
   const onKeyDown = (e, editor, next) => {
-    if (e.keyCode >= 65 && e.keyCode <= 90) { // a-65 z-90
+    if (e.keyCode >= 65 && e.keyCode <= 90 && !e.ctrlKey && !e.metaKey) {
+      // a-65 z-90
       suggestionListRef.current = editor.getSuggestionListOf(e.key)
       document.dispatchEvent(editorEmittedEvent('open'))
       return next()

@@ -1,6 +1,3 @@
-body {
-    padding: 10%
-}
 
 #editor{
     border: 1px solid gray;
@@ -14,29 +11,29 @@ body {
     min-width: 100px;
     transform: translate3d(-5px,5px,0);
     overflow: scroll;
-    max-height: 150px;
+    max-height: 136px;
 }
 
-.option{
+#hint .option{
     background: white;
     color: gray;
     padding: 7px 14px 7px 7px;
     font-weight: bold;
     border: 1px solid transparent;
 }
-.option:hover{
+#hint .option:hover{
     cursor: pointer;
 }
-.option.selected{
+#hint .option.selected{
     border-top: 1px dashed white;
     border-bottom: 1px dashed white;
     background: gray;
     color: white;
 }
 
-.selected.option:last-child, {
+#hint .selected.option:last-child, {
     border-bottom: 1px solid transparent; 
 }
-.selected.option:first-child{
+#hint .selected.option:first-child{
     border-top: 1px solid transparent; 
 }
