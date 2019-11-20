@@ -14,13 +14,10 @@ import TabIndentPlugin from './plugins/TabIndentPlugin'
 // ------ Decoration ------- */
 import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
 // ------ AutoReplace ------- */
-import triggerReplacePlugin from './plugins/triggerReplacePlugin'
+import PortalPlugin from './plugins/PortalPlugin'
 // ---------  GUI  --------- */
 import { ToolbarPlugin } from './plugins/ToolbarPlugin'
 import TextCountPlugin from './plugins/TextCountPlugin'
-
-// CSS
-import './editor.css'
 
 const storedJsonStr = store.get('slateJs-demo')
 const json = JSON.parse(storedJsonStr)
@@ -42,126 +39,14 @@ const initialValue = Value.fromJSON(json || {
 })
 
 const plugins = [
-  triggerReplacePlugin,
   HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
   ...CmdKeyPlugins,
   ...CtrlKeyPlugins,
   TabIndentPlugin,
   ToolbarPlugin,
-  TextCountPlugin
+  TextCountPlugin,
+  PortalPlugin
 ]
-
-const Portal = ({ editorRef, suggestionListRef }) => {
-  const [open, setOpen] = React.useState(true)
-  const [index, setIndex] = React.useState(0)
-  const [xOffset, setXOffset] = React.useState(0)
-  const [yOffset, setYOffset] = React.useState(0)
-  const hintRef = React.useRef()
-
-  // Array
-  const suggestionList = suggestionListRef.current || []
-
-  const editorEventHandler = e => {
-    switch (e.detail.instruction) {
-      case 'open': {
-        try {
-          const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
-          setXOffset(rect.left)
-          setYOffset(rect.bottom)
-        } catch {
-          console.log('uncaught caret position')
-        }
-        setIndex(0)
-        setOpen(true)
-        break
-      }
-      case 'close': {
-        setOpen(false)
-        setIndex(0)
-        break
-      }
-      case 'incre': {
-        const newIndex = (index + 1) % suggestionList.length || 0
-        setIndex(newIndex)
-        hintRef.current && hintRef.current.children[newIndex].scrollIntoView({
-          block: 'nearest',
-          inline: 'nearest'
-        })
-        break
-      }
-      case 'decre': {
-        const newIndex = (index - 1 + suggestionList.length) % suggestionList.length || 0
-        setIndex(newIndex)
-        hintRef.current && hintRef.current.children[newIndex].scrollIntoView({
-          block: 'nearest',
-          inline: 'nearest'
-        })
-        break
-      }
-      case 'enter': {
-        const suggestion = suggestionList[index]
-        if (suggestion) {
-          editorRef.current && editorRef.current.replaceLastWord(suggestionList[index]).insertText(' ')
-        }
-        setIndex(0)
-        setOpen(false)
-        break
-      }
-      default: {
-        console.log('unhandled event:', e)
-        break
-      }
-    }
-  }
-  React.useEffect(
-    () => {
-      document.addEventListener('editorEmittedEvent', editorEventHandler)
-      return () => { document.removeEventListener('editorEmittedEvent', editorEventHandler) }
-    }
-  )
-
-  const onMouseDown = index => (e, editor, next) => {
-    e.preventDefault()
-    setIndex(index)
-    setOpen(false)
-    editorRef.current && editorRef.current.replaceLastWord(suggestionList[index])
-  }
-  const onMouseOver = index => e => {
-    e.preventDefault()
-    setIndex(index)
-  }
-  return (
-    suggestionList.length
-      ? (
-        <div
-          id='hint'
-          style={{
-            display: open ? 'flex' : 'none',
-            position: 'fixed',
-            left: xOffset,
-            top: yOffset
-          }}
-          ref={hintRef}
-        >
-          {
-            suggestionList.map(
-              (option, i) => (
-                <div
-                  key={i}
-                  onMouseOver={onMouseOver(i)}
-                  onMouseDown={onMouseDown(i)}
-                  className={index === i ? 'selected option' : 'option'}
-                >
-                  {option}
-                </div>
-              )
-            )
-          }
-        </div>
-      )
-      : null
-  )
-}
 
 const MyEditor = props => {
   const [value, setValue] = React.useState(initialValue)
@@ -226,23 +111,16 @@ const MyEditor = props => {
   }
 
   return (
-    <div>
-      <Editor
-        id='editor'
-        ref={editorRef}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        onMouseDown={onMouseDown}
-        value={value}
-        plugins={plugins}
-        autoFocus
-        placeholder='Type something here...'
-      />
-      <Portal
-        editorRef={editorRef}
-        suggestionListRef={suggestionListRef}
-      />
-    </div>
+    <Editor
+      ref={editorRef}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      onMouseDown={onMouseDown}
+      value={value}
+      plugins={plugins}
+      autoFocus
+      placeholder='Type something here...'
+    />
   )
 }
 

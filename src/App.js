@@ -7,9 +7,8 @@ function App () {
   return (
     <>
       <Editor />
-      <KeyMapTable table={suggestionMap} />
     </>
   )
 }
-
+{ /* <KeyMapTable table={suggestionMap} /> */ }
 export default App

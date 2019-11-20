@@ -20,7 +20,7 @@ const dictionary = {
   ...sa
 }
 
-const triggerReplacePlugin = {
+const SuggestionPlugin = {
   queries: {
     getLastWord: editor => {
       if (editor.value.focusText) {
@@ -60,4 +60,4 @@ const triggerReplacePlugin = {
   }
 }
 
-export default triggerReplacePlugin
+export default SuggestionPlugin
