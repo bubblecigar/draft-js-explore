@@ -10,7 +10,12 @@ const moduleStyle = {}
 const buttonStyle = ({ active }) => ({
   margin: '10px 5px',
   backgroundColor: active ? 'gray' : 'transparent',
-  color: active ? 'white' : 'black'
+  color: active ? 'white' : 'black',
+  fontFamily: 'source-code-pro, Menlo, Monaco, Consolas, "Courier New",monospace',
+  fontWeight: 'bold',
+  padding: '5px',
+  border: 0,
+  cursor: 'pointer'
 })
 
 const makeButton = ({ mouseDownHandler, styleHandler }) => ({ editor, label }) => (

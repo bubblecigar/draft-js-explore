@@ -3,17 +3,42 @@ import SuggestionMapAPI from './api/SuggestionMapAPI'
 
 const tableStyle = {
   display: 'flex',
-  flexFlow: 'row wrap',
-  justifyContent: 'center'
+  flexFlow: 'row nowrap',
+  margin: '10px -10px'
 }
 const pairStyle = {
   display: 'flex',
   flexFlow: 'row',
-  margin: '10px',
-  border: '1px solid black'
+  margin: '10px'
+}
+const inputStyle = type => ({
+  width: type === 'key' ? '100px' : '200px',
+  textAlign: 'center',
+  padding: '7px',
+  margin: '3px',
+  fontFamily: 'source-code-pro, Menlo, Monaco, Consolas, "Courier New",monospace',
+  fontWeight: 'bold',
+  border: '0',
+  borderBottom: '1px solid gray',
+  outline: 'none'
+})
+const buttonStyle = {
+  margin: '10px 5px',
+  fontFamily: 'source-code-pro, Menlo, Monaco, Consolas, "Courier New",monospace',
+  fontWeight: 'bold',
+  padding: '5px',
+  border: 0,
+  cursor: 'pointer'
+}
+const deleteButtonStyle = {
+  backgroundColor: 'transparent',
+  border: '0',
+  color: 'indianRed',
+  cursor: 'pointer'
+
 }
 
-const Input = ({ value, setState }) => {
+const Input = ({ value, setState, style }) => {
   const [v, setV] = React.useState(value)
   const inputRef = React.useRef()
 
@@ -23,6 +48,7 @@ const Input = ({ value, setState }) => {
 
   return (
     <input
+      style={style}
       ref={inputRef}
       value={v}
       onChange={onChange}
@@ -87,19 +113,25 @@ const KeyMapTable = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <button onClick={addPair} style={{ width: '50%' }}>add new shortcut</button>
+      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <button onClick={addPair} style={buttonStyle}>+ add new shortcut</button>
       </div>
       <div style={tableStyle}>
         {uids.map(
           (uid, i) => (
             <div key={uid} style={pairStyle}>
-              <button onClick={deletePair(i)}>x</button>
+              <button
+                style={deleteButtonStyle}
+                onClick={deletePair(i)}
+              >-
+              </button>
               <Input
+                style={inputStyle('key')}
                 value={keys[i]}
                 setState={setStateBy(i, keys, setKeys)}
               />
               <Input
+                style={inputStyle('val')}
                 value={vals[i]}
                 setState={setStateBy(i, vals, setVals)}
               />

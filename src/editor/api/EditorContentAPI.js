@@ -3,7 +3,7 @@ import { Value } from 'slate'
 
 const importer = () => {
   const storedJsonStr = store.get('slateJs-demo')
-  const json = JSON.parse(storedJsonStr)
+  const json = storedJsonStr ? JSON.parse(storedJsonStr) : ''
   const initialValue = Value.fromJSON(json || {
     document: {
       nodes: [

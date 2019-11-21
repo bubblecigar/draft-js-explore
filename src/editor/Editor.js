@@ -18,14 +18,11 @@ import SuggestionPortalPlugin from './plugins/SuggestionPortalPlugin'
 import ToolbarPlugin from './plugins/ToolbarPlugin'
 import TextCountPlugin from './plugins/TextCountPlugin'
 
+/* --------- Style -------- */
+import EditorStylePlugin from './plugins/EditorStylePlugin'
+
 // save & load
 import EditorContentAPI from './api/EditorContentAPI'
-
-const editorStyle = {
-  border: '1px solid gray',
-  padding: '7px',
-  margin: '30px 10%'
-}
 
 const plugins = [
   HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
@@ -34,7 +31,11 @@ const plugins = [
   TabIndentPlugin,
   ToolbarPlugin,
   TextCountPlugin,
-  SuggestionPortalPlugin
+  SuggestionPortalPlugin,
+  EditorStylePlugin({
+    border: '1px solid lightgray',
+    padding: '7px'
+  })
 ]
 
 const H2oEditor = props => {
@@ -59,15 +60,12 @@ const H2oEditor = props => {
   }
 
   return value ? (
-    <div style={editorStyle}>
-      <Editor
-        onChange={onChange}
-        value={value}
-        plugins={plugins}
-        autoFocus
-        placeholder='Type something here...'
-      />
-    </div>
+    <Editor
+      onChange={onChange}
+      value={value}
+      plugins={plugins}
+      autoFocus
+    />
   ) : null
 }
 

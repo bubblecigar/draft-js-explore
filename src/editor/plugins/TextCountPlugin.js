@@ -3,8 +3,7 @@ import React from 'react'
 const style = {
   padding: '5px',
   textAlign: 'right',
-  backgroundColor: 'lightgray',
-  color: 'white',
+  color: 'gray',
   fontFamily: `source-code-pro, Menlo, Monaco, Consolas, "Courier New",
   monospace`,
   fontWeight: 'bold'
@@ -19,8 +18,10 @@ const TextCountPlugin = {
     return (
       <>
         {next()}
-        <div style={style}>{selectedText} sel.</div>
-        <div style={style}>{totalText} tot.</div>
+        <div style={style}>
+          <span>{selectedText} sel.</span>
+          <span>{totalText} tot.</span>
+        </div>
       </>
     )
   }
