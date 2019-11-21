@@ -29,9 +29,9 @@ const LastWordPlugin = {
     },
     getSuggestionListOf: (editor, key) => {
       const lastWord = editor.getLastWord() + key || ''
-      return !lastWord ? [] : lastWord.split('').reduce(
+      return !lastWord ? [] : lastWord.split('').reduceRight(
         (acc, char, i) => (
-          acc[0] ? [acc[0] + char, ...acc] : [char]
+          acc[0] ? [char + acc[0], ...acc] : [char]
         ), []
       ).reduce(
         (acc, key) => (

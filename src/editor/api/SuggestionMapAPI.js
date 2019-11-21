@@ -1,5 +1,5 @@
 import store from 'store-js'
-import defaultMap from './suggestionMap'
+import defaultMap from './defaultMap'
 
 const exporter = data => { store.set('client-suggestionMap', data) }
 const importer = () => {

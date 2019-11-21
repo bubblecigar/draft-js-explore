@@ -38,8 +38,8 @@ const deleteButtonStyle = {
   backgroundColor: 'transparent',
   border: '0',
   color: 'indianRed',
-  cursor: 'pointer'
-
+  cursor: 'pointer',
+  fontWeight: 'bold'
 }
 
 const Input = ({ value, setState, style }) => {
@@ -61,7 +61,10 @@ const Input = ({ value, setState, style }) => {
 
   return (
     <input
-      style={{ ...style, backgroundColor: isFocused ? 'rgba(0,0,0,.05)' : 'white' }}
+      style={{
+        ...style,
+        backgroundColor: isFocused ? 'rgba(0,0,0,.05)' : 'white'
+      }}
       ref={inputRef}
       value={v}
       onChange={onChange}
