@@ -26,7 +26,6 @@ const importer = () => {
 const exporter = change => {
   const jsonStr = JSON.stringify(change.value.toJSON())
   store.set('slateJs-demo', jsonStr)
-  console.log(jsonStr)
 }
 
 export default { importer, exporter }
