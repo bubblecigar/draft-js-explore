@@ -1,6 +1,6 @@
 {
   "name": "rich-text-editor-survey",
-  "homepage": "https://bubblecigar.github.io/draft-js-explore",
+  "homepage": "https://bubblecigar.github.io/slate-editor/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
