@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/slate-editor/static/css/main.34de6062.chunk.css",
-    "main.js": "/slate-editor/static/js/main.00a674b3.chunk.js",
-    "main.js.map": "/slate-editor/static/js/main.00a674b3.chunk.js.map",
+    "main.js": "/slate-editor/static/js/main.8426a36f.chunk.js",
+    "main.js.map": "/slate-editor/static/js/main.8426a36f.chunk.js.map",
     "runtime-main.js": "/slate-editor/static/js/runtime-main.741b08ba.js",
     "runtime-main.js.map": "/slate-editor/static/js/runtime-main.741b08ba.js.map",
     "static/js/2.cde1a42f.chunk.js": "/slate-editor/static/js/2.cde1a42f.chunk.js",
     "static/js/2.cde1a42f.chunk.js.map": "/slate-editor/static/js/2.cde1a42f.chunk.js.map",
     "index.html": "/slate-editor/index.html",
-    "precache-manifest.05b6bbff9c9fc5fe39d1716f109d37c9.js": "/slate-editor/precache-manifest.05b6bbff9c9fc5fe39d1716f109d37c9.js",
+    "precache-manifest.74967465544692dbdbed760e9bbdf70a.js": "/slate-editor/precache-manifest.74967465544692dbdbed760e9bbdf70a.js",
     "service-worker.js": "/slate-editor/service-worker.js",
     "static/css/main.34de6062.chunk.css.map": "/slate-editor/static/css/main.34de6062.chunk.css.map"
   },
@@ -16,6 +16,6 @@
     "static/js/runtime-main.741b08ba.js",
     "static/js/2.cde1a42f.chunk.js",
     "static/css/main.34de6062.chunk.css",
-    "static/js/main.00a674b3.chunk.js"
+    "static/js/main.8426a36f.chunk.js"
   ]
 }
