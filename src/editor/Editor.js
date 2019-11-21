@@ -1,7 +1,6 @@
 // core
 import React from 'react'
 import { Editor } from 'slate-react'
-import { Value } from 'slate'
 
 // plugins
 /* ------ KeyBinding ------- */
@@ -13,33 +12,14 @@ import TabIndentPlugin from './plugins/TabIndentPlugin'
 import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
 
 /* ------ Suggestion ------- */
-import SuggestionPortal from './plugins/SuggestionPortal'
+import SuggestionPortalPlugin from './plugins/SuggestionPortalPlugin'
 
 /* ---------  GUI  --------- */
 import ToolbarPlugin from './plugins/ToolbarPlugin'
 import TextCountPlugin from './plugins/TextCountPlugin'
 
 // save & load
-import store from 'store-js'
-
-const storedJsonStr = store.get('slateJs-demo')
-const json = JSON.parse(storedJsonStr)
-const initialValue = Value.fromJSON(json || {
-  document: {
-    nodes: [
-      {
-        object: 'block',
-        type: 'paragraph',
-        nodes: [
-          {
-            object: 'text',
-            text: ' A line of text in a paragraph.'
-          }
-        ]
-      }
-    ]
-  }
-})
+import EditorContentAPI from './api/EditorContentAPI'
 
 const editorStyle = {
   border: '1px solid gray',
@@ -47,40 +27,48 @@ const editorStyle = {
   margin: '30px 10%'
 }
 
-const createEditor = ({ suggestionMapImporter }) => {
-  const plugins = [
-    HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
-    ...CmdKeyPlugins,
-    ...CtrlKeyPlugins,
-    TabIndentPlugin,
-    ToolbarPlugin,
-    TextCountPlugin,
-    SuggestionPortal(suggestionMapImporter)
-  ]
+const plugins = [
+  HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
+  ...CmdKeyPlugins,
+  ...CtrlKeyPlugins,
+  TabIndentPlugin,
+  ToolbarPlugin,
+  TextCountPlugin,
+  SuggestionPortalPlugin
+]
 
-  return props => {
-    const [value, setValue] = React.useState(initialValue)
+const H2oEditor = props => {
+  // fetch EditorContent
+  React.useEffect(
+    () => {
+      const initVal = EditorContentAPI.importer()
+      setValue(initVal)
+    }, []
+  )
 
-    const onChange = change => {
-    // save change to localStorage
-      const jsonStr = JSON.stringify(change.value.toJSON())
-      store.set('slateJs-demo', jsonStr)
+  const [value, setValue] = React.useState(null)
 
-      // update editor
-      setValue(change.value)
+  const onChange = change => {
+    // export EditorContent when substantial change occurs
+    if (change.value.document !== value.document) {
+      EditorContentAPI.exporter(change)
     }
 
-    return (
-      <div style={editorStyle}>
-        <Editor
-          onChange={onChange}
-          value={value}
-          plugins={plugins}
-          autoFocus
-          placeholder='Type something here...'
-        />
-      </div>
-    )
+    // update editor
+    setValue(change.value)
   }
+
+  return value ? (
+    <div style={editorStyle}>
+      <Editor
+        onChange={onChange}
+        value={value}
+        plugins={plugins}
+        autoFocus
+        placeholder='Type something here...'
+      />
+    </div>
+  ) : null
 }
-export default createEditor
+
+export default H2oEditor

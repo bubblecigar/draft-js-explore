@@ -1,4 +1,5 @@
 import React from 'react'
+import SuggestionMapAPI from './api/SuggestionMapAPI'
 
 const tableStyle = {
   display: 'flex',
@@ -31,13 +32,24 @@ const Input = ({ value, setState }) => {
   )
 }
 
-const KeyMapTable = ({ table, suggestionMapExporter }) => {
+const KeyMapTable = () => {
+  // fetch keyMapTable
+  React.useEffect(
+    () => {
+      const table = SuggestionMapAPI.importer()
+      setKeys(Object.keys(table))
+      setVals(Object.keys(table).map(key => table[key]))
+      setUids(Object.keys(table).map((key, i) => i))
+      setNextId(Object.keys(table).length)
+    }, []
+  )
+
   // flatten table to keys[] : vals[] pair
-  const [keys, setKeys] = React.useState(Object.keys(table))
-  const [vals, setVals] = React.useState(keys.map(key => table[key]))
+  const [keys, setKeys] = React.useState([])
+  const [vals, setVals] = React.useState([])
   // dynamic generate unique keyId for new pair
-  const [uids, setUids] = React.useState(keys.map((key, i) => i))
-  const [nextId, setNextId] = React.useState(keys.length)
+  const [uids, setUids] = React.useState([])
+  const [nextId, setNextId] = React.useState(0)
 
   const setStateBy = (index, field, setter) => newVal => {
     setter([...field.slice(0, index), newVal, ...field.slice(index + 1)])
@@ -63,7 +75,7 @@ const KeyMapTable = ({ table, suggestionMapExporter }) => {
     ), {}
   )
   const exportData = () => {
-    suggestionMapExporter(bind(keys, vals))
+    SuggestionMapAPI.exporter(bind(keys, vals))
     document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
   }
 

@@ -225,8 +225,8 @@ const EventDispatcher = () => {
   return ({ onKeyDown, onMouseDown })
 }
 
-const SuggestionPortal = suggestionMapImporter => ({
-  ...LastWordPlugin(suggestionMapImporter),
+const SuggestionPortalPlugin = ({
+  ...LastWordPlugin,
   ...EventDispatcher(),
   renderEditor: (props, editor, next) => (
     <>
@@ -236,4 +236,4 @@ const SuggestionPortal = suggestionMapImporter => ({
   )
 })
 
-export default SuggestionPortal
+export default SuggestionPortalPlugin
