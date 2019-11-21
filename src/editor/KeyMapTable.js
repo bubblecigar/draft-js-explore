@@ -78,23 +78,33 @@ const KeyMapTable = () => {
   // fetch keyMapTable
   React.useEffect(
     () => {
-      SuggestionMapAPI.importer().then(
-        data => {
-          setKeys(Object.keys(data))
-          setVals(Object.keys(data).map(key => data[key]))
-          setUids(Object.keys(data).map((key, i) => i))
-          setNextId(Object.keys(data).length)
-        }
-      )
+      SuggestionMapAPI.importer()
+        .then(
+          data => {
+          // flatten table to keys[] : vals[] pair
+            setKeys(Object.keys(data))
+            setVals(Object.keys(data).map(key => data[key]))
+            // dynamic generate unique keyId for new pair
+            setUids(Object.keys(data).map((key, i) => i))
+            setNextId(Object.keys(data).length)
+          }
+        )
+        .then(
+          () => {
+            ready.current = true
+          }
+        )
+        .catch(
+          err => console.log('Fail to fetch suggestion map:', err)
+        )
     }, []
   )
 
-  // flatten table to keys[] : vals[] pair
-  const [keys, setKeys] = React.useState([])
-  const [vals, setVals] = React.useState([])
-  // dynamic generate unique keyId for new pair
-  const [uids, setUids] = React.useState([])
-  const [nextId, setNextId] = React.useState(0)
+  const [keys, setKeys] = React.useState(null)
+  const [vals, setVals] = React.useState(null)
+  const [uids, setUids] = React.useState(null)
+  const [nextId, setNextId] = React.useState(null)
+  const ready = React.useRef(false)
 
   const setStateBy = (index, field, setter) => newVal => {
     setter([...field.slice(0, index), newVal, ...field.slice(index + 1)])
@@ -122,13 +132,15 @@ const KeyMapTable = () => {
 
   React.useEffect(
     () => {
-      SuggestionMapAPI.exporter(bind(keys, vals))
-      // send to SuggestionPortalPlugin.js
-      document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
+      if (ready.current && keys && vals) {
+        SuggestionMapAPI.exporter(bind(keys, vals))
+        // send to SuggestionPortalPlugin.js
+        document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
+      }
     }, [keys, vals]
   )
 
-  return (
+  return uids ? (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
         <button onClick={addPair} style={buttonStyle}>+ add new shortcut</button>
@@ -157,7 +169,7 @@ const KeyMapTable = () => {
         )}
       </div>
     </div>
-  )
+  ) : null
 }
 
 export default KeyMapTable

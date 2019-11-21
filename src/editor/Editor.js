@@ -42,9 +42,13 @@ const H2oEditor = props => {
   // fetch EditorContent
   React.useEffect(
     () => {
-      EditorContentAPI.importer().then(res => {
-        setValue(res)
-      })
+      EditorContentAPI.importer()
+        .then(res => {
+          setValue(res)
+        })
+        .catch(
+          err => console.log('Fail to fetch editor content:', err)
+        )
     }, []
   )
 
@@ -67,7 +71,11 @@ const H2oEditor = props => {
       plugins={plugins}
       autoFocus
     />
-  ) : null
+  ) : (
+    <div>
+      fetching...
+    </div>
+  )
 }
 
 export default H2oEditor

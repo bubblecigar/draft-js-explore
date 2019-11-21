@@ -4,11 +4,15 @@ const suggestionMap = {
   map: {}
 }
 
-SuggestionMapAPI.importer().then(
-  data => {
-    suggestionMap.map = data
-  }
-)
+SuggestionMapAPI.importer()
+  .then(
+    data => {
+      suggestionMap.map = data
+    }
+  )
+  .catch(
+    err => console.log('Fail to fetch suggestion map:', err)
+  )
 
 const LastWordPlugin = {
   queries: {
