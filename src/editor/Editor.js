@@ -18,14 +18,14 @@ import SuggestionPortalPlugin from './plugins/SuggestionPortalPlugin'
 import ToolbarPlugin from './plugins/ToolbarPlugin'
 import TextCountPlugin from './plugins/TextCountPlugin'
 
-/* --------- Style -------- */
+/* ---------  CSS  --------- */
 import EditorStylePlugin from './plugins/EditorStylePlugin'
 
-// save & load
+// save & load API
 import EditorContentAPI from './api/EditorContentAPI'
 
 const plugins = [
-  HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
+  HighlightFocusedBlockPlugin('rgba(0,0,0,.05)'),
   ...CmdKeyPlugins,
   ...CtrlKeyPlugins,
   TabIndentPlugin,
@@ -42,8 +42,9 @@ const H2oEditor = props => {
   // fetch EditorContent
   React.useEffect(
     () => {
-      const initVal = EditorContentAPI.importer()
-      setValue(initVal)
+      EditorContentAPI.importer().then(res => {
+        setValue(res)
+      })
     }, []
   )
 

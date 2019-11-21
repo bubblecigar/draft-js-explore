@@ -19,8 +19,8 @@ const TextCountPlugin = {
       <>
         {next()}
         <div style={style}>
-          <span>{selectedText} sel.</span>
-          <span>{totalText} tot.</span>
+          <span>{selectedText} sel /</span>
+          <span> {totalText} tot</span>
         </div>
       </>
     )

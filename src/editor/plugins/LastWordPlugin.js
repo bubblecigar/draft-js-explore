@@ -1,5 +1,14 @@
 import SuggestionMapAPI from '../api/SuggestionMapAPI'
-let suggestionMap = SuggestionMapAPI.importer()
+
+const suggestionMap = {
+  map: {}
+}
+
+SuggestionMapAPI.importer().then(
+  data => {
+    suggestionMap.map = data
+  }
+)
 
 const LastWordPlugin = {
   queries: {
@@ -13,10 +22,10 @@ const LastWordPlugin = {
       return ''
     },
     getSuggestionWord: editor => { // string
-      return suggestionMap[editor.getLastWord()] || ''
+      return suggestionMap.map[editor.getLastWord()] || ''
     },
     getSuggestionWordOf: (editor, key) => { // string
-      return suggestionMap[editor.getLastWord() + key] || ''
+      return suggestionMap.map[editor.getLastWord() + key] || ''
     },
     getSuggestionListOf: (editor, key) => {
       const lastWord = editor.getLastWord() + key || ''
@@ -26,13 +35,19 @@ const LastWordPlugin = {
         ), []
       ).reduce(
         (acc, key) => (
-          suggestionMap[key] ? [...acc, suggestionMap[key]] : [...acc]
+          suggestionMap.map[key] ? [...acc, suggestionMap.map[key]] : [...acc]
         ), []
       )
     }
   },
   commands: {
-    updateSuggestionMap: editor => { suggestionMap = SuggestionMapAPI.importer() },
+    updateSuggestionMap: editor => {
+      SuggestionMapAPI.importer().then(
+        data => {
+          suggestionMap.map = data
+        }
+      )
+    },
     replaceLastWord: (editor, newWord) => {
       const lastWord = editor.getLastWord()
       if (!lastWord) {

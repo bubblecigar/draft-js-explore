@@ -44,15 +44,24 @@ const deleteButtonStyle = {
 
 const Input = ({ value, setState, style }) => {
   const [v, setV] = React.useState(value)
+  const [isFocused, setIsFocused] = React.useState(false)
   const inputRef = React.useRef()
 
   const onChange = e => setV(e.target.value)
-  const onFocus = e => inputRef.current.select()
-  const onBlur = e => value === v ? 0 : setState(v)
+  const onFocus = e => {
+    inputRef.current.select()
+    setIsFocused(true)
+  }
+  const onBlur = e => {
+    if (value !== v) {
+      setState(v)
+    }
+    setIsFocused(false)
+  }
 
   return (
     <input
-      style={style}
+      style={{ ...style, backgroundColor: isFocused ? 'rgba(0,0,0,.05)' : 'white' }}
       ref={inputRef}
       value={v}
       onChange={onChange}
@@ -66,11 +75,14 @@ const KeyMapTable = () => {
   // fetch keyMapTable
   React.useEffect(
     () => {
-      const table = SuggestionMapAPI.importer()
-      setKeys(Object.keys(table))
-      setVals(Object.keys(table).map(key => table[key]))
-      setUids(Object.keys(table).map((key, i) => i))
-      setNextId(Object.keys(table).length)
+      SuggestionMapAPI.importer().then(
+        data => {
+          setKeys(Object.keys(data))
+          setVals(Object.keys(data).map(key => data[key]))
+          setUids(Object.keys(data).map((key, i) => i))
+          setNextId(Object.keys(data).length)
+        }
+      )
     }, []
   )
 
@@ -104,15 +116,13 @@ const KeyMapTable = () => {
       key ? { ...acc, [key]: vals[i] } : { ...acc }
     ), {}
   )
-  const exportData = () => {
-    SuggestionMapAPI.exporter(bind(keys, vals))
-    document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
-  }
 
   React.useEffect(
     () => {
-      exportData()
-    }
+      SuggestionMapAPI.exporter(bind(keys, vals))
+      // send to SuggestionPortalPlugin.js
+      document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
+    }, [keys, vals]
   )
 
   return (

@@ -123,6 +123,7 @@ const Portal = ({ editor }) => {
       const editorEventHandler = handleEditor({ index, editor })
       const updateHandler = () => editor.updateSuggestionMap()
       document.addEventListener('editorEmittedEvent', editorEventHandler)
+      // listen to keyMapTable.js
       document.addEventListener('suggestionMapUpdated', updateHandler)
       return () => {
         document.removeEventListener('editorEmittedEvent', editorEventHandler)

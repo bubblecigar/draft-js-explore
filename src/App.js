@@ -12,11 +12,13 @@ const containerStyle = {
 
 const headingStyle = {
   textAlign: 'center',
-  paddingTop: '30px'
+  paddingTop: '30px',
+  fontFamily: 'source-code-pro, Menlo, Monaco, Consolas, "Courier New",monospace'
 }
 
 const componentStyle = {
-  padding: '30px'
+  padding: '30px',
+  paddingBottom: '60px'
 }
 
 function App () {

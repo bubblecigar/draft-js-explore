@@ -2,7 +2,7 @@ import store from 'store-js'
 import { Value } from 'slate'
 
 const importer = () => {
-  const storedJsonStr = store.get('slateJs-demo')
+  const storedJsonStr = store.get('slateJs-demo') // json || undefined
   const json = storedJsonStr ? JSON.parse(storedJsonStr) : ''
   const initialValue = Value.fromJSON(json || {
     document: {
@@ -20,7 +20,11 @@ const importer = () => {
       ]
     }
   })
-  return initialValue
+  return new Promise(
+    (resolve, reject) => {
+      resolve(initialValue)
+    }
+  )
 }
 
 const exporter = change => {
