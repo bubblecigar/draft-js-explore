@@ -2,13 +2,20 @@ import React from 'react'
 
 const style = {
   padding: '5px',
-  textAlign: 'right'
+  textAlign: 'right',
+  backgroundColor: 'lightgray',
+  color: 'white',
+  fontFamily: `source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+  monospace`,
+  fontWeight: 'bold'
 }
+
+const calLength = str => str.split(' ').join('').split('\n').join('').length
 
 const TextCountPlugin = {
   renderEditor: (props, editor, next) => {
-    const totalText = editor.value.document.text.split(' ').join('').split('\n').join('').length
-    const selectedText = editor.value.fragment.text.length
+    const totalText = calLength(editor.value.document.text)
+    const selectedText = calLength(editor.value.fragment.text)
     return (
       <>
         {next()}

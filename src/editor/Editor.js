@@ -14,7 +14,6 @@ import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
 
 /* ------ Suggestion ------- */
 import SuggestionPortal from './plugins/SuggestionPortal'
-import suggestionMap from './plugins/suggestionMap'
 
 /* ---------  GUI  --------- */
 import ToolbarPlugin from './plugins/ToolbarPlugin'
@@ -48,39 +47,40 @@ const editorStyle = {
   margin: '30px 10%'
 }
 
-const plugins = [
-  HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
-  ...CmdKeyPlugins,
-  ...CtrlKeyPlugins,
-  TabIndentPlugin,
-  ToolbarPlugin,
-  TextCountPlugin,
-  SuggestionPortal(suggestionMap)
-]
+const createEditor = ({ suggestionMapImporter }) => {
+  const plugins = [
+    HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
+    ...CmdKeyPlugins,
+    ...CtrlKeyPlugins,
+    TabIndentPlugin,
+    ToolbarPlugin,
+    TextCountPlugin,
+    SuggestionPortal(suggestionMapImporter)
+  ]
 
-const MyEditor = props => {
-  const [value, setValue] = React.useState(initialValue)
+  return props => {
+    const [value, setValue] = React.useState(initialValue)
 
-  const onChange = change => {
+    const onChange = change => {
     // save change to localStorage
-    const jsonStr = JSON.stringify(change.value.toJSON())
-    store.set('slateJs-demo', jsonStr)
+      const jsonStr = JSON.stringify(change.value.toJSON())
+      store.set('slateJs-demo', jsonStr)
 
-    // update editor
-    setValue(change.value)
+      // update editor
+      setValue(change.value)
+    }
+
+    return (
+      <div style={editorStyle}>
+        <Editor
+          onChange={onChange}
+          value={value}
+          plugins={plugins}
+          autoFocus
+          placeholder='Type something here...'
+        />
+      </div>
+    )
   }
-
-  return (
-    <div style={editorStyle}>
-      <Editor
-        onChange={onChange}
-        value={value}
-        plugins={plugins}
-        autoFocus
-        placeholder='Type something here...'
-      />
-    </div>
-  )
 }
-
-export default MyEditor
+export default createEditor

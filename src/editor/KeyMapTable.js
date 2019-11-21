@@ -18,7 +18,7 @@ const Input = ({ value, setState }) => {
 
   const onChange = e => setV(e.target.value)
   const onFocus = e => inputRef.current.select()
-  const onBlur = e => setState(v)
+  const onBlur = e => value === v ? 0 : setState(v)
 
   return (
     <input
@@ -31,7 +31,7 @@ const Input = ({ value, setState }) => {
   )
 }
 
-const KeyMapTable = ({ table }) => {
+const KeyMapTable = ({ table, suggestionMapExporter }) => {
   // flatten table to keys[] : vals[] pair
   const [keys, setKeys] = React.useState(Object.keys(table))
   const [vals, setVals] = React.useState(keys.map(key => table[key]))
@@ -62,25 +62,39 @@ const KeyMapTable = ({ table }) => {
       key ? { ...acc, [key]: vals[i] } : { ...acc }
     ), {}
   )
+  const exportData = () => {
+    suggestionMapExporter(bind(keys, vals))
+    document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
+  }
+
+  React.useEffect(
+    () => {
+      exportData()
+    }
+  )
 
   return (
-    <div style={tableStyle}>
-      <button onClick={addPair}>add new shortcut</button>
-      {uids.map(
-        (uid, i) => (
-          <div key={uid} style={pairStyle}>
-            <button onClick={deletePair(i)}>x</button>
-            <Input
-              value={keys[i]}
-              setState={setStateBy(i, keys, setKeys)}
-            />
-            <Input
-              value={vals[i]}
-              setState={setStateBy(i, vals, setVals)}
-            />
-          </div>
-        )
-      )}
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <button onClick={addPair} style={{ width: '50%' }}>add new shortcut</button>
+      </div>
+      <div style={tableStyle}>
+        {uids.map(
+          (uid, i) => (
+            <div key={uid} style={pairStyle}>
+              <button onClick={deletePair(i)}>x</button>
+              <Input
+                value={keys[i]}
+                setState={setStateBy(i, keys, setKeys)}
+              />
+              <Input
+                value={vals[i]}
+                setState={setStateBy(i, vals, setVals)}
+              />
+            </div>
+          )
+        )}
+      </div>
     </div>
   )
 }

@@ -1,4 +1,5 @@
-const LastWordPlugin = suggestionMap => {
+const LastWordPlugin = suggestionMapImporter => {
+  let suggestionMap = suggestionMapImporter()
   return {
     queries: {
       getLastWord: editor => {
@@ -10,14 +11,27 @@ const LastWordPlugin = suggestionMap => {
         }
         return ''
       },
-      getSuggestionList: editor => {
-        return suggestionMap[editor.getLastWord().toLowerCase()] || []
+      getSuggestionWord: editor => { // string
+        return suggestionMap[editor.getLastWord()] || ''
+      },
+      getSuggestionWordOf: (editor, key) => { // string
+        return suggestionMap[editor.getLastWord() + key] || ''
       },
       getSuggestionListOf: (editor, key) => {
-        return suggestionMap[editor.getLastWord().toLowerCase() + key.toLowerCase()] || []
+        const lastWord = editor.getLastWord() + key || ''
+        return !lastWord ? [] : lastWord.split('').reduce(
+          (acc, char, i) => (
+            acc[0] ? [acc[0] + char, ...acc] : [char]
+          ), []
+        ).reduce(
+          (acc, key) => (
+            suggestionMap[key] ? [...acc, suggestionMap[key]] : [...acc]
+          ), []
+        )
       }
     },
     commands: {
+      updateSuggestionMap: editor => { suggestionMap = suggestionMapImporter() },
       replaceLastWord: (editor, newWord) => {
         const lastWord = editor.getLastWord()
         if (!lastWord) {
@@ -33,8 +47,11 @@ const LastWordPlugin = suggestionMap => {
         if (!lastWord) {
           return
         }
-        const suggestions = editor.getSuggestionList()
-        editor.deleteBackward(lastWord.length).insertText(suggestions[0] ? suggestions[0] : lastWord)
+        const suggestion = editor.getSuggestionWord()
+        if (!suggestion) {
+          return
+        }
+        editor.deleteBackward(lastWord.length).insertText(suggestion)
       }
     }
   }

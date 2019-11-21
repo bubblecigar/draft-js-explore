@@ -87,4 +87,4 @@ const suggestionMap = {
   ...sa
 }
 
-export default suggestionMap
+export default map

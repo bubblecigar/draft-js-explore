@@ -1,13 +1,18 @@
 import React from 'react'
-import Editor from './editor/Editor.js'
+import editorCreator from './editor/Editor.js'
 import KeyMapTable from './editor/KeyMapTable'
-import suggestionMap from './editor/plugins/suggestionMap'
+
+// store
+import store from 'store-js'
 
 function App () {
+  const suggestionMapExporter = data => { store.set('client-suggestionMap', data) }
+  const suggestionMapImporter = () => store.get('client-suggestionMap')
+  const Editor = editorCreator({ suggestionMapImporter })
   return (
     <>
       <Editor />
-      <KeyMapTable table={suggestionMap} />
+      <KeyMapTable table={suggestionMapImporter()} suggestionMapExporter={suggestionMapExporter} />
     </>
   )
 }
