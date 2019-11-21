@@ -42,6 +42,12 @@ const initialValue = Value.fromJSON(json || {
   }
 })
 
+const editorStyle = {
+  border: '1px solid gray',
+  padding: '7px',
+  margin: '30px 10%'
+}
+
 const plugins = [
   HighlightFocusedBlockPlugin('rgba(0,0,0,.1)'),
   ...CmdKeyPlugins,
@@ -65,13 +71,15 @@ const MyEditor = props => {
   }
 
   return (
-    <Editor
-      onChange={onChange}
-      value={value}
-      plugins={plugins}
-      autoFocus
-      placeholder='Type something here...'
-    />
+    <div style={editorStyle}>
+      <Editor
+        onChange={onChange}
+        value={value}
+        plugins={plugins}
+        autoFocus
+        placeholder='Type something here...'
+      />
+    </div>
   )
 }
 

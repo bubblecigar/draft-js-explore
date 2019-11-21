@@ -54,7 +54,7 @@ const suggestionList = {
 
 const Portal = ({ editor }) => {
   // portal state, listen to editor
-  const [open, setOpen] = React.useState(true)
+  const [open, setOpen] = React.useState(false)
   const [index, setIndex] = React.useState(0)
 
   // portal position

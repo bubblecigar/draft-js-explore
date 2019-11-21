@@ -1,10 +1,6 @@
 import React from 'react'
 import styleQueryPlugin from './styleQueryPlugin'
 
-const containerStyle = {
-  padding: '10%',
-  paddingBottom: '30px'
-}
 const toolbarStyle = {
   display: 'flex',
   justifyContent: 'space-between'
@@ -93,10 +89,10 @@ const Toolbar = ({ editor }) => (
 const ToolbarPlugin = {
   renderEditor: (props, editor, next) => {
     return (
-      <div style={containerStyle}>
+      <>
         <Toolbar editor={editor} />
         {next()}
-      </div>
+      </>
     )
   },
   ...styleQueryPlugin
