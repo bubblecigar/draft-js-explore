@@ -67,24 +67,4 @@ const map = {
   'I&O': 'Intake and output'
 }
 
-const obj = {}
-const sa = {}
-Object.keys(map).forEach(
-  _key => {
-    const key = _key.toLowerCase()
-
-    obj[key] = [map[_key]]
-    if (!sa[key[0]]) {
-      sa[key[0]] = []
-    }
-    sa[key[0]].push(map[_key])
-  }
-)
-
-const suggestionMap = {
-  lt: ['left', 'light', 'lot'],
-  ...obj,
-  ...sa
-}
-
 export default map

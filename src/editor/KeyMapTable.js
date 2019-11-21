@@ -3,8 +3,12 @@ import SuggestionMapAPI from './api/SuggestionMapAPI'
 
 const tableStyle = {
   display: 'flex',
-  flexFlow: 'row nowrap',
-  margin: '10px -10px'
+  flexFlow: 'column wrap',
+  height: '500px',
+  alignItems: 'center',
+  margin: '10px 0px',
+  overflow: 'scroll',
+  border: '1px solid lightgray'
 }
 const pairStyle = {
   display: 'flex',
