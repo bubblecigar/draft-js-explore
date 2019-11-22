@@ -46,195 +46,205 @@ const optionStyle = ({ select, firstChild, lastChild }) => {
   )
 }
 
-// sharing data between Portal and EventDispatcher
-const suggestionList = {
-  value: [],
-  clear: () => { suggestionList.value = [] }
-}
+const getSuggestionlist = (lastword, map) => (!lastword ? [] : lastword.split('').reduceRight(
+  (acc, char, i) => (
+    acc[0] ? [char + acc[0], ...acc] : [char]
+  ), []
+).reduce(
+  (acc, key) => (
+    map[key] ? [...acc, map[key]] : [...acc]
+  ), []
+))
 
-const Portal = ({ editor }) => {
-  // portal state, listen to editor
-  const [open, setOpen] = React.useState(false)
-  const [index, setIndex] = React.useState(0)
-
-  // portal position
-  const [xOffset, setXOffset] = React.useState(0)
-  const [yOffset, setYOffset] = React.useState(0)
-  const portalRef = React.useRef(null)
-
-  const updatePortalPosition = () => {
-    try {
-      const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
-      setXOffset(rect.left)
-      setYOffset(rect.bottom)
-    } catch {
-      console.log('uncaught caret position')
-    }
+const SuggestionPortalPlugin = suggestionMap => {
+  // sharing data between Portal and EventDispatcher
+  const suggestionList = {
+    value: [],
+    clear: () => { suggestionList.value = [] }
   }
 
-  React.useEffect(
-    () => {
-      const handleEditor = ({ editor, index }) => e => {
-        switch (e.detail.instruction) {
-          case 'open': {
-            updatePortalPosition()
-            setIndex(0)
-            setOpen(true)
-            break
-          }
-          case 'close': {
-            setOpen(false)
-            setIndex(0)
-            break
-          }
-          case 'incre': {
-            const newIndex = (index + 1) % suggestionList.value.length || 0
-            setIndex(newIndex)
-            portalRef.current && portalRef.current.children[newIndex].scrollIntoView({
-              block: 'nearest',
-              inline: 'nearest'
-            })
-            break
-          }
-          case 'decre': {
-            const newIndex = (index - 1 + suggestionList.value.length) % suggestionList.value.length || 0
-            setIndex(newIndex)
-            portalRef.current && portalRef.current.children[newIndex].scrollIntoView({
-              block: 'nearest',
-              inline: 'nearest'
-            })
-            break
-          }
-          case 'enter': {
-            const suggestion = suggestionList.value[index]
-            if (suggestion) {
-              editor.replaceLastWord(suggestionList.value[index]).insertText(' ')
+  const Portal = ({ editor }) => {
+    // portal state, listen to editor
+    const [open, setOpen] = React.useState(false)
+    const [index, setIndex] = React.useState(0)
+
+    // portal position
+    const [xOffset, setXOffset] = React.useState(0)
+    const [yOffset, setYOffset] = React.useState(0)
+    const portalRef = React.useRef(null)
+
+    const updatePortalPosition = () => {
+      try {
+        const rect = window.getSelection().getRangeAt(0).getBoundingClientRect()
+        setXOffset(rect.left)
+        setYOffset(rect.bottom)
+      } catch {
+        console.log('uncaught caret position')
+      }
+    }
+
+    React.useEffect(
+      () => {
+        const handleEditor = ({ editor, index }) => e => {
+          switch (e.detail.instruction) {
+            case 'open': {
+              updatePortalPosition()
+              setIndex(0)
+              setOpen(true)
+              break
             }
-            setIndex(0)
-            setOpen(false)
-            break
+            case 'close': {
+              setOpen(false)
+              setIndex(0)
+              break
+            }
+            case 'incre': {
+              const newIndex = (index + 1) % suggestionList.value.length || 0
+              setIndex(newIndex)
+              portalRef.current && portalRef.current.children[newIndex].scrollIntoView({
+                block: 'nearest',
+                inline: 'nearest'
+              })
+              break
+            }
+            case 'decre': {
+              const newIndex = (index - 1 + suggestionList.value.length) % suggestionList.value.length || 0
+              setIndex(newIndex)
+              portalRef.current && portalRef.current.children[newIndex].scrollIntoView({
+                block: 'nearest',
+                inline: 'nearest'
+              })
+              break
+            }
+            case 'enter': {
+              const suggestion = suggestionList.value[index]
+              if (suggestion) {
+                editor.replaceLastWord(suggestionList.value[index]).insertText(' ')
+              }
+              setIndex(0)
+              setOpen(false)
+              break
+            }
+            default: {
+              console.log('unhandled event:', e)
+              break
+            }
+          }
+        }
+        const editorEventHandler = handleEditor({ index, editor })
+        document.addEventListener('editorEmittedEvent', editorEventHandler)
+        return () => {
+          document.removeEventListener('editorEmittedEvent', editorEventHandler)
+        }
+      }, [editor, index] // update callback behavior when index or editor change
+    )
+
+    const onMouseDown = index => e => {
+      e.preventDefault()
+      setIndex(index)
+      setOpen(false)
+      editor.replaceLastWord(suggestionList.value[index])
+    }
+    const onMouseOver = index => e => {
+      e.preventDefault()
+      setIndex(index)
+    }
+
+    return (
+      suggestionList.value.length
+        ? (
+          <div
+            ref={portalRef}
+            style={portalStyle({
+              open,
+              xOffset,
+              yOffset
+            })}
+          >
+            {
+              suggestionList.value.map(
+                (option, i) => (
+                  <div
+                    key={i}
+                    onMouseOver={onMouseOver(i)}
+                    onMouseDown={onMouseDown(i)}
+                    style={optionStyle({
+                      select: index === i,
+                      firstChild: i === 0,
+                      lastChild: i === suggestionList.value.length - 1
+                    })}
+                  >
+                    {option}
+                  </div>
+                )
+              )
+            }
+          </div>
+        )
+        : null
+    )
+  }
+
+  const EventDispatcher = () => {
+    const editorEmittedEvent = instruction => (
+      new window.CustomEvent('editorEmittedEvent', { detail: { instruction } })
+    )
+
+    const onKeyDown = (e, editor, next) => {
+      if (e.keyCode >= 65 && e.keyCode <= 90 && !e.ctrlKey && !e.metaKey) {
+      // a-65 z-90
+        const lastword = editor.getLastWord() + e.key || ''
+        const list = getSuggestionlist(lastword, suggestionMap)
+        suggestionList.value = list
+        document.dispatchEvent(editorEmittedEvent('open'))
+        return next()
+      } else if (suggestionList.value.length) {
+        switch (e.keyCode) {
+          case 38: { // up
+            e.preventDefault()
+            document.dispatchEvent(editorEmittedEvent('decre'))
+            return
+          }
+          case 40: { // down
+            e.preventDefault()
+            document.dispatchEvent(editorEmittedEvent('incre'))
+            return
+          }
+          case 13: { // enter
+            e.preventDefault()
+            document.dispatchEvent(editorEmittedEvent('enter'))
+            suggestionList.clear()
+            return
           }
           default: {
-            console.log('unhandled event:', e)
-            break
+            document.dispatchEvent(editorEmittedEvent('close'))
+            suggestionList.clear()
+            return next()
           }
         }
+      } else {
+        return next()
       }
-      const editorEventHandler = handleEditor({ index, editor })
-      const updateHandler = () => editor.updateSuggestionMap()
-      document.addEventListener('editorEmittedEvent', editorEventHandler)
-      // listen to keyMapTable.js
-      document.addEventListener('suggestionMapUpdated', updateHandler)
-      return () => {
-        document.removeEventListener('editorEmittedEvent', editorEventHandler)
-        document.removeEventListener('suggestionMapUpdated', updateHandler)
-      }
-    }, [editor, index] // update callback behavior when index or editor change
-  )
+    }
 
-  const onMouseDown = index => e => {
-    e.preventDefault()
-    setIndex(index)
-    setOpen(false)
-    editor.replaceLastWord(suggestionList.value[index])
-  }
-  const onMouseOver = index => e => {
-    e.preventDefault()
-    setIndex(index)
-  }
-
-  return (
-    suggestionList.value.length
-      ? (
-        <div
-          ref={portalRef}
-          style={portalStyle({
-            open,
-            xOffset,
-            yOffset
-          })}
-        >
-          {
-            suggestionList.value.map(
-              (option, i) => (
-                <div
-                  key={i}
-                  onMouseOver={onMouseOver(i)}
-                  onMouseDown={onMouseDown(i)}
-                  style={optionStyle({
-                    select: index === i,
-                    firstChild: i === 0,
-                    lastChild: i === suggestionList.value.length - 1
-                  })}
-                >
-                  {option}
-                </div>
-              )
-            )
-          }
-        </div>
-      )
-      : null
-  )
-}
-
-const EventDispatcher = () => {
-  const editorEmittedEvent = instruction => (
-    new window.CustomEvent('editorEmittedEvent', { detail: { instruction } })
-  )
-
-  const onKeyDown = (e, editor, next) => {
-    if (e.keyCode >= 65 && e.keyCode <= 90 && !e.ctrlKey && !e.metaKey) {
-    // a-65 z-90
-      suggestionList.value = editor.getSuggestionListOf(e.key)
-      document.dispatchEvent(editorEmittedEvent('open'))
-      return next()
-    } else if (suggestionList.value.length) {
-      switch (e.keyCode) {
-        case 38: { // up
-          e.preventDefault()
-          document.dispatchEvent(editorEmittedEvent('decre'))
-          return
-        }
-        case 40: { // down
-          e.preventDefault()
-          document.dispatchEvent(editorEmittedEvent('incre'))
-          return
-        }
-        case 13: { // enter
-          e.preventDefault()
-          document.dispatchEvent(editorEmittedEvent('enter'))
-          suggestionList.clear()
-          return
-        }
-        default: {
-          document.dispatchEvent(editorEmittedEvent('close'))
-          suggestionList.clear()
-          return next()
-        }
-      }
-    } else {
+    const onMouseDown = (e, editor, next) => {
+      document.dispatchEvent(editorEmittedEvent('close'))
       return next()
     }
+
+    return ({ onKeyDown, onMouseDown })
   }
 
-  const onMouseDown = (e, editor, next) => {
-    document.dispatchEvent(editorEmittedEvent('close'))
-    return next()
-  }
-
-  return ({ onKeyDown, onMouseDown })
+  return ({
+    ...LastWordPlugin,
+    ...EventDispatcher(),
+    renderEditor: (props, editor, next) => (
+      <>
+        {next()}
+        <Portal editor={editor} />
+      </>
+    )
+  })
 }
-
-const SuggestionPortalPlugin = ({
-  ...LastWordPlugin,
-  ...EventDispatcher(),
-  renderEditor: (props, editor, next) => (
-    <>
-      {next()}
-      <Portal editor={editor} />
-    </>
-  )
-})
 
 export default SuggestionPortalPlugin

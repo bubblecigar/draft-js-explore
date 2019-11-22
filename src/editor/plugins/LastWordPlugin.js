@@ -1,19 +1,3 @@
-import SuggestionMapAPI from '../api/SuggestionMapAPI'
-
-const suggestionMap = {
-  map: {}
-}
-
-SuggestionMapAPI.importer()
-  .then(
-    data => {
-      suggestionMap.map = data
-    }
-  )
-  .catch(
-    err => console.log('Fail to fetch suggestion map:', err)
-  )
-
 const LastWordPlugin = {
   queries: {
     getLastWord: editor => {
@@ -24,34 +8,9 @@ const LastWordPlugin = {
         return tail
       }
       return ''
-    },
-    getSuggestionWord: editor => { // string
-      return suggestionMap.map[editor.getLastWord()] || ''
-    },
-    getSuggestionWordOf: (editor, key) => { // string
-      return suggestionMap.map[editor.getLastWord() + key] || ''
-    },
-    getSuggestionListOf: (editor, key) => {
-      const lastWord = editor.getLastWord() + key || ''
-      return !lastWord ? [] : lastWord.split('').reduceRight(
-        (acc, char, i) => (
-          acc[0] ? [char + acc[0], ...acc] : [char]
-        ), []
-      ).reduce(
-        (acc, key) => (
-          suggestionMap.map[key] ? [...acc, suggestionMap.map[key]] : [...acc]
-        ), []
-      )
     }
   },
   commands: {
-    updateSuggestionMap: editor => {
-      SuggestionMapAPI.importer().then(
-        data => {
-          suggestionMap.map = data
-        }
-      )
-    },
     replaceLastWord: (editor, newWord) => {
       const lastWord = editor.getLastWord()
       if (!lastWord) {
@@ -61,19 +20,7 @@ const LastWordPlugin = {
         return
       }
       editor.deleteBackward(lastWord.length).insertText(newWord)
-    },
-    replaceLastWordBySuggestion: editor => {
-      const lastWord = editor.getLastWord()
-      if (!lastWord) {
-        return
-      }
-      const suggestion = editor.getSuggestionWord()
-      if (!suggestion) {
-        return
-      }
-      editor.deleteBackward(lastWord.length).insertText(suggestion)
     }
   }
 }
-
 export default LastWordPlugin

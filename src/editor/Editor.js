@@ -15,51 +15,102 @@ import HighlightFocusedBlockPlugin from './plugins/HighlightFocusedBlockPlugin'
 import SuggestionPortalPlugin from './plugins/SuggestionPortalPlugin'
 
 /* ---------  GUI  --------- */
-import ToolbarPlugin from './plugins/ToolbarPlugin'
-import TextCountPlugin from './plugins/TextCountPlugin'
+import Place from './plugins/Place'
+import { createMarkButton, createBlockButton } from './plugins/buttonMaker'
+import { textCounter } from './plugins/TextCountPlugin'
 
 /* ---------  CSS  --------- */
 import EditorStylePlugin from './plugins/EditorStylePlugin'
+import { toggleButtonStyle } from './styles/buttonStyle'
 
-// save & load API
-import EditorContentAPI from './api/EditorContentAPI'
+// global ref for plugin to access internal data of the component
+const ref = { export: null }
 
-const plugins = [
+const staticPlugins = [
+  EditorStylePlugin({
+    border: '1px solid lightgray',
+    padding: '7px'
+  }),
   HighlightFocusedBlockPlugin('rgba(0,0,0,.05)'),
   ...CmdKeyPlugins,
   ...CtrlKeyPlugins,
   TabIndentPlugin,
-  ToolbarPlugin,
-  TextCountPlugin,
-  SuggestionPortalPlugin,
-  EditorStylePlugin({
-    border: '1px solid lightgray',
-    padding: '7px'
+  Place({
+    topLeftItems: [
+      createMarkButton({
+        type: 'bold',
+        label: 'Bold'
+      }),
+      createMarkButton({
+        type: 'italic',
+        label: 'Italic'
+      }),
+      createMarkButton({
+        type: 'strikethrough',
+        label: 'Strike'
+      })
+    ],
+    topRightItems: [
+      createBlockButton({
+        type: 'paragraph',
+        label: 'Para...'
+      }),
+      createBlockButton({
+        type: 'code',
+        label: '<Code />'
+      }),
+      createBlockButton({
+        type: 'quotation',
+        label: '"Quate"'
+      })
+    ],
+    bottomLeftItems: [
+      editor => {
+        const save = () => ref.export ? ref.export() : null
+        return (
+          <button
+            style={toggleButtonStyle({})}
+            onClick={save}
+          > > Save
+          </button>
+        )
+      }
+    ],
+    bottomRightItems: [
+      textCounter
+    ]
   })
 ]
 
-const H2oEditor = props => {
-  // fetch EditorContent
+const H2oEditor = ({ suggestionMap, content, setContent }) => {
+  // plugins
+  const [plugins, setPlugins] = React.useState(staticPlugins)
+  // dynamically update suggestion plugin
   React.useEffect(
     () => {
-      EditorContentAPI.importer()
-        .then(res => {
-          setValue(res)
-        })
-        .catch(
-          err => console.log('Fail to fetch editor content:', err)
-        )
-    }, []
+      if (suggestionMap) {
+        setPlugins([...staticPlugins, SuggestionPortalPlugin(suggestionMap)])
+      }
+    }, [suggestionMap]
   )
 
-  const [value, setValue] = React.useState(null)
+  // internal data: value, external data: content
+  const [value, setValue] = React.useState(content)
+  // sync internal & external data
+  React.useEffect(
+    () => {
+      setValue(content)
+    }, [content]
+  )
+  // export internal data
+  React.useEffect(
+    () => {
+      // pass the hook for plugin to trigger exporting behavior
+      ref.export = () => setContent(value)
+    }, [value, setContent]
+  )
 
   const onChange = change => {
-    // export EditorContent when substantial change occurs
-    if (change.value.document !== value.document) {
-      EditorContentAPI.exporter(change)
-    }
-
     // update editor
     setValue(change.value)
   }
@@ -71,11 +122,7 @@ const H2oEditor = props => {
       plugins={plugins}
       autoFocus
     />
-  ) : (
-    <div>
-      fetching...
-    </div>
-  )
+  ) : null
 }
 
 export default H2oEditor

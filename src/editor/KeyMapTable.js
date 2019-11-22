@@ -1,5 +1,4 @@
 import React from 'react'
-import SuggestionMapAPI from './api/SuggestionMapAPI'
 
 const tableStyle = {
   display: 'flex',
@@ -43,6 +42,7 @@ const deleteButtonStyle = {
 }
 
 const Input = ({ value, setState, style }) => {
+  // internal data: v, external data: value
   const [v, setV] = React.useState(value)
   const [isFocused, setIsFocused] = React.useState(false)
   const inputRef = React.useRef()
@@ -52,6 +52,7 @@ const Input = ({ value, setState, style }) => {
     inputRef.current.select()
     setIsFocused(true)
   }
+  // export internal data
   const onBlur = e => {
     if (value !== v) {
       setState(v)
@@ -74,37 +75,26 @@ const Input = ({ value, setState, style }) => {
   )
 }
 
-const KeyMapTable = () => {
-  // fetch keyMapTable
-  React.useEffect(
-    () => {
-      SuggestionMapAPI.importer()
-        .then(
-          data => {
-          // flatten table to keys[] : vals[] pair
-            setKeys(Object.keys(data))
-            setVals(Object.keys(data).map(key => data[key]))
-            // dynamic generate unique keyId for new pair
-            setUids(Object.keys(data).map((key, i) => i))
-            setNextId(Object.keys(data).length)
-          }
-        )
-        .then(
-          () => {
-            ready.current = true
-          }
-        )
-        .catch(
-          err => console.log('Fail to fetch suggestion map:', err)
-        )
-    }, []
-  )
-
+const KeyMapTable = ({ suggestionMap, setSuggestionMap }) => {
+  // internal suggestion data
   const [keys, setKeys] = React.useState(null)
   const [vals, setVals] = React.useState(null)
   const [uids, setUids] = React.useState(null)
   const [nextId, setNextId] = React.useState(null)
-  const ready = React.useRef(false)
+
+  // sync internal data and external data
+  React.useEffect(
+    () => {
+      if (suggestionMap) {
+        // flatten suggestionMap to keys[] : vals[] pair
+        setKeys(Object.keys(suggestionMap))
+        setVals(Object.keys(suggestionMap).map(key => suggestionMap[key]))
+        // dynamic generate unique keyId for new pair
+        setUids(Object.keys(suggestionMap).map((key, i) => i))
+        setNextId(Object.keys(suggestionMap).length)
+      }
+    }, [suggestionMap]
+  )
 
   const setStateBy = (index, field, setter) => newVal => {
     setter([...field.slice(0, index), newVal, ...field.slice(index + 1)])
@@ -123,27 +113,20 @@ const KeyMapTable = () => {
     setNextId(nextId + 1)
   }
 
-  // bind keys[] : vals[] pair to generate suggestion table
+  // bind keys[] : vals[] pair to generate new suggestionMap
   const bind = (keys, vals) => keys.reduce(
     (acc, key, i) => (
       key ? { ...acc, [key]: vals[i] } : { ...acc }
     ), {}
   )
 
-  React.useEffect(
-    () => {
-      if (ready.current && keys && vals) {
-        SuggestionMapAPI.exporter(bind(keys, vals))
-        // send to SuggestionPortalPlugin.js
-        document.dispatchEvent(new window.CustomEvent('suggestionMapUpdated'))
-      }
-    }, [keys, vals]
-  )
+  const exportMap = () => setSuggestionMap(bind(keys, vals))
 
   return uids ? (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
         <button onClick={addPair} style={buttonStyle}>+ add new shortcut</button>
+        <button onClick={exportMap} style={buttonStyle}>> save shortcuts</button>
       </div>
       <div style={tableStyle}>
         {uids.map(
